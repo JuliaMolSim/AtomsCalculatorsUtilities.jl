@@ -3,8 +3,11 @@ uuid = "9855a07e-8816-4d1b-ac92-859c17475477"
 authors = ["Teemu Järvinen <teemu.j.jarvinen@gmail.com> and contributors"]
 version = "0.1.0-DEV"
 
-[compat]
+[deps]
 AtomsCalculators = "a3e0e189-c65a-42c1-833c-339540406eb1"
+
+[compat]
+AtomsCalculators = "1.9"
 julia = "1.9"
 
 [extras]
