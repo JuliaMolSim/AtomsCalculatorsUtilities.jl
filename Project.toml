@@ -1,0 +1,13 @@
+name = "AtomsUtilityCalculators"
+uuid = "9855a07e-8816-4d1b-ac92-859c17475477"
+authors = ["Teemu Järvinen <teemu.j.jarvinen@gmail.com> and contributors"]
+version = "1.0.0-DEV"
+
+[compat]
+julia = "1.9"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
