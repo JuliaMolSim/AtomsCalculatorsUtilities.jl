@@ -4,8 +4,8 @@ using AtomsCalculators
 using AtomsBase
 
 
-include("combination_calculator.jl")
-include("reporting_calculator.jl")
-include("subsystem_calculator.jl")
+include("calculators/combination_calculator.jl")
+include("calculators/reporting_calculator.jl")
+include("calculators/subsystem_calculator.jl")
 
 end

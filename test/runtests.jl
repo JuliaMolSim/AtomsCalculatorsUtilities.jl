@@ -34,26 +34,24 @@ using Unitful
 
     @testset "SubSystemCalculator" begin
         
-        sub_cal = SubSystemCalculator(MyType(), 1:2)
+        sub_calc = SubSystemCalculator(MyType(), 1:2)
 
-        test_potential_energy(hydrogen, sub_cal)
-        test_forces(hydrogen, sub_cal)
-        test_virial(hydrogen, sub_cal)
+        test_energy_forces_virial(hydrogen, sub_calc)
 
-        f = AtomsCalculators.zero_forces(hydrogen, sub_cal)
+        f = AtomsCalculators.zero_forces(hydrogen, sub_calc)
         f_zero = f[1]
         f_one = (ones ∘ typeof)( ustrip.(f_zero) ) * unit(f_zero[1])
         
 
-        @test AtomsCalculators.potential_energy(hydrogen, sub_cal) == 2.0u"eV"
+        @test AtomsCalculators.potential_energy(hydrogen, sub_calc) == 2.0u"eV"
 
-        AtomsCalculators.forces!(f, hydrogen, sub_cal)
+        AtomsCalculators.forces!(f, hydrogen, sub_calc)
         @test f[1] == f_one
         @test f[2] == f_one
         @test f[3] == f_zero
         @test f[4] == f_zero
 
-        v = AtomsCalculators.virial(hydrogen, sub_cal)
+        v = AtomsCalculators.virial(hydrogen, sub_calc)
         @test v[1,1] == 2.0u"eV"
     end
 
@@ -61,9 +59,7 @@ using Unitful
         
         co_calc = CombinationCalculator(MyType(), MyType())
 
-        test_potential_energy(hydrogen, co_calc)
-        test_forces(hydrogen, co_calc)
-        test_virial(hydrogen, co_calc)
+        test_energy_forces_virial(hydrogen, co_calc)
         
         e = AtomsCalculators.potential_energy(hydrogen, co_calc)
         f = AtomsCalculators.forces(hydrogen, co_calc)
@@ -81,8 +77,6 @@ using Unitful
         v = AtomsCalculators.calculate(AtomsCalculators.Virial(), hydrogen, rcalc)
         @test v == fetch(rcalc)
         @test v == take!(rcalc)
-        test_potential_energy(hydrogen, rcalc)
-        test_forces(hydrogen, rcalc)
-        test_virial(hydrogen, rcalc)
+        test_energy_forces_virial(hydrogen, rcalc)
     end
 end
