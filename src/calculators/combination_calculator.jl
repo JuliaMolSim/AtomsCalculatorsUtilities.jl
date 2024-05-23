@@ -16,7 +16,7 @@ This will allow you to extend based on calculator type.
 # Example
 
 ```julia
-function AtomsUtilityCalculators.generate_keywords(sys, pp1::PairPotential, pp2::PairPotential; kwargs...)
+function AtomsCalculatorsUtilities.generate_keywords(sys, pp1::PairPotential, pp2::PairPotential; kwargs...)
     if cutoff_radius(pp1) ≈ cutoff_radius(pp2)
         nlist = PairList(sys, cutoff_radius(pp1))
         return (; :nlist => nlist, kwargs...)
