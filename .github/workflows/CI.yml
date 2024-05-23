@@ -65,6 +65,6 @@ jobs:
         shell: julia --project=docs --color=yes {0}
         run: |
           using Documenter: DocMeta, doctest
-          using AtomsUtilityCalculators
-          DocMeta.setdocmeta!(AtomsUtilityCalculators, :DocTestSetup, :(using AtomsUtilityCalculators); recursive=true)
-          doctest(AtomsUtilityCalculators)
+          using AtomsCalculatorsUtilities
+          DocMeta.setdocmeta!(AtomsCalculatorsUtilities, :DocTestSetup, :(using AtomsCalculatorsUtilities); recursive=true)
+          doctest(AtomsCalculatorsUtilities)

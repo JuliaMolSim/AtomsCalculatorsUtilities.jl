@@ -1,4 +1,4 @@
-name = "AtomsUtilityCalculators"
+name = "AtomsCalculatorsUtilities"
 uuid = "9855a07e-8816-4d1b-ac92-859c17475477"
 authors = ["Teemu Järvinen <teemu.j.jarvinen@gmail.com> and contributors"]
 version = "0.1.0-DEV"

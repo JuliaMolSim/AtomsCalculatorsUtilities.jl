@@ -1,14 +1,14 @@
-using AtomsUtilityCalculators
+using AtomsCalculatorsUtilities
 using Documenter
 
-DocMeta.setdocmeta!(AtomsUtilityCalculators, :DocTestSetup, :(using AtomsUtilityCalculators); recursive=true)
+DocMeta.setdocmeta!(AtomsCalculatorsUtilities, :DocTestSetup, :(using AtomsCalculatorsUtilities); recursive=true)
 
 makedocs(;
-    modules=[AtomsUtilityCalculators],
+    modules=[AtomsCalculatorsUtilities],
     authors="Teemu Järvinen <teemu.j.jarvinen@gmail.com> and contributors",
-    sitename="AtomsUtilityCalculators.jl",
+    sitename="AtomsCalculatorsUtilities.jl",
     format=Documenter.HTML(;
-        canonical="https://tjjarvinen.github.io/AtomsUtilityCalculators.jl",
+        canonical="https://tjjarvinen.github.io/AtomsCalculatorsUtilities.jl",
         edit_link="main",
         assets=String[],
     ),
@@ -18,6 +18,6 @@ makedocs(;
 )
 
 deploydocs(;
-    repo="github.com/tjjarvinen/AtomsUtilityCalculators.jl",
+    repo="github.com/tjjarvinen/AtomsCalculatorsUtilities.jl",
     devbranch="main",
 )

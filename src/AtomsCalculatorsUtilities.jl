@@ -1,4 +1,4 @@
-module AtomsUtilityCalculators
+module AtomsCalculatorsUtilities
 
 using AtomsCalculators
 using AtomsBase

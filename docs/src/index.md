@@ -1,14 +1,14 @@
 ```@meta
-CurrentModule = AtomsUtilityCalculators
+CurrentModule = AtomsCalculatorsUtilities
 ```
 
-# AtomsUtilityCalculators
+# AtomsCalculatorsUtilities
 
-Documentation for [AtomsUtilityCalculators](https://github.com/tjjarvinen/AtomsUtilityCalculators.jl).
+Documentation for [AtomsCalculatorsUtilities](https://github.com/tjjarvinen/AtomsCalculatorsUtilities.jl).
 
 ```@index
 ```
 
 ```@autodocs
-Modules = [AtomsUtilityCalculators]
+Modules = [AtomsCalculatorsUtilities]
 ```

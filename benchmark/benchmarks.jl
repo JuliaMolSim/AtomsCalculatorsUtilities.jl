@@ -1,4 +1,4 @@
-using AtomsUtilityCalculators
+using AtomsCalculatorsUtilities
 using BenchmarkTools
 
 SUITE = BenchmarkGroup()
