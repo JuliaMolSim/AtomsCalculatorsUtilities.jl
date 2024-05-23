@@ -1,4 +1,4 @@
-using AtomsUtilityCalculators
+using AtomsCalculatorsUtilities
 using AtomsBase
 using AtomsCalculators
 using AtomsCalculators.AtomsCalculatorsTesting
@@ -6,7 +6,7 @@ using StaticArrays
 using Test
 using Unitful
 
-@testset "AtomsUtilityCalculators.jl" begin
+@testset "AtomsCalculatorsUtilities.jl" begin
     # Define simple calculator for the tests
 
     struct MyType
