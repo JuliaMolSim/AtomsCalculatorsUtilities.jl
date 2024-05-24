@@ -10,5 +10,5 @@ Documentation for [AtomsCalculatorsUtilities](https://github.com/tjjarvinen/Atom
 ```
 
 ```@autodocs
-Modules = [AtomsCalculatorsUtilities]
+Modules = [AtomsCalculatorsUtilities, AtomsCalculatorsUtilities.Calculators]
 ```

@@ -1,4 +1,4 @@
-using AtomsCalculatorsUtilities
+using AtomsCalculatorsUtilities.Calculators
 using AtomsBase
 using AtomsCalculators
 using AtomsCalculators.AtomsCalculatorsTesting
@@ -78,5 +78,12 @@ using Unitful
         @test v == fetch(rcalc)
         @test v == take!(rcalc)
         test_energy_forces_virial(hydrogen, rcalc)
+    end
+
+    @testset "ZeroVirialCalculator" begin
+        zvcalc = ZeroVirialCalculator(MyType())
+        v = AtomsCalculators.virial(hydrogen, zvcalc)
+        @test all(iszero, v)
+        test_energy_forces_virial(hydrogen, zvcalc)
     end
 end

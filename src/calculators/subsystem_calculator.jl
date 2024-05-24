@@ -1,7 +1,7 @@
 
 export SubSystemCalculator
 
-"""
+@doc """
     SubSystemCalculator{T, TC}
 
 Submits subsystem to given calculator.
