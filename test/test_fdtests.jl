@@ -13,11 +13,15 @@ module DemoPairCalc
    import AtomsCalculators: energy_forces_virial, 
                             potential_energy, forces, virial 
 
+   _ustripvecvec(A::AbstractVector{<: AbstractArray}) = [ustrip.(a) for a in A] 
+
    abstract type AbstractPot end 
 
    struct Pot <: AbstractPot end 
    struct PotFerr <: AbstractPot end 
    struct PotVerr <: AbstractPot end 
+
+
 
    const uE = u"eV" 
    const uL = u"Å"
@@ -56,19 +60,19 @@ module DemoPairCalc
 
    # @generate_interface  ... not working as expected 
    potential_energy(sys, calc::AbstractPot; kwargs...) = 
-        _energy(ustrip.(position(sys))) * uE 
+        _energy(_ustripvecvec(position(sys))) * uE 
 
    forces(sys, calc::AbstractPot; kwargs...) = 
-         _forces(ustrip.(position(sys))) * uE / uL
+         _forces(_ustripvecvec(position(sys))) * uE / uL
 
    virial(sys, calc::AbstractPot; kwargs...) = 
-         _virial(ustrip.(position(sys))) * uE
+         _virial(_ustripvecvec(position(sys))) * uE
 
    forces(sys, calc::PotFerr; kwargs...) = 
-         0.9 * _forces(ustrip.(position(sys))) * uE / uL
+         0.9 * _forces(_ustripvecvec(position(sys))) * uE / uL
 
    virial(sys, calc::PotVerr; kwargs...) = 
-         0.9 * _virial(ustrip.(position(sys))) * uE
+         0.9 * _virial(_ustripvecvec(position(sys))) * uE
 
 
    function random_system(Nat)
@@ -85,7 +89,7 @@ D = DemoPairCalc
 
 
 ##
-
+# rattle = 0.1u"Å"
 for rattle in (false, 0.1u"Å")
    Nat = rand(4:8) 
    sys = D.random_system(Nat)
