@@ -121,5 +121,13 @@ result = ACT.fdtest(sys, calc; rattle = 0.1u"Å", tol = 1e-10)
 @test !result.f_result
 @test !result.v_result
 
+# another test that checks what happens if we change unit 
+Nat = 8
+sys = D.random_system(Nat)
+calc = D.Pot()
+result = ACT.fdtest(sys, calc; rattle = 0.1u"Å", h0 = 1e-12 * u"m")
+@test result.f_result
+@test result.v_result
+
 ##
 
