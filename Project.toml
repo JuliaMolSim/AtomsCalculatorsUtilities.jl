@@ -17,7 +17,10 @@ AtomsBase = "0.3"
 AtomsCalculators = "0.1.2"
 Folds = "0.2.10"
 Unitful = "1"
-julia = "1.9"
+julia = "1.9, 1.10"
+StaticArrays = "1" 
+LinearAlgebra = "1.9, 1.10"
+Printf = "1.9, 1.10"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"

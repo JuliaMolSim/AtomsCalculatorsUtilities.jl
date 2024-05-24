@@ -114,7 +114,7 @@ function _rattle(X, bb, r)
 end
 
 
-function _fdtest_forces(calc, sys::AbstractSystem, verbose, rattle) 
+function _fdtest_forces(sys::AbstractSystem, calc, verbose, rattle) 
    X0, bb0 = _rattle(position(sys), bounding_box(sys), rattle)
 
    _at(X) = FastSystem(bb0, 
@@ -133,7 +133,7 @@ function _fdtest_forces(calc, sys::AbstractSystem, verbose, rattle)
 end
 
 
-function _fdtest_virial(calc, sys::AbstractSystem, verbose, rattle)
+function _fdtest_virial(sys::AbstractSystem, calc, verbose, rattle)
    X0, C0 = _rattle(position(sys), bounding_box(sys), rattle)
 
    # reference deformation is just the identify
@@ -176,7 +176,7 @@ returns a named tuple with the results.
 - `test_virial=true` : test the virial
 - `test_forces=true` : test the forces
 """
-function fdtest(calc, sys::AbstractSystem;
+function fdtest(sys::AbstractSystem, calc;
                 verbose = true, 
                 rattle = false, 
                 test_virial = true, 
@@ -184,13 +184,13 @@ function fdtest(calc, sys::AbstractSystem;
                 )
 
    if test_forces 
-      f_result = _fdtest_forces(calc, sys, verbose, rattle)
+      f_result = _fdtest_forces(sys, calc, verbose, rattle)
    else 
       f_result = missing 
    end
 
    if test_virial
-      v_result = _fdtest_virial(calc, sys, verbose, rattle)
+      v_result = _fdtest_virial(sys, calc, verbose, rattle)
    else 
       v_result = missing
    end

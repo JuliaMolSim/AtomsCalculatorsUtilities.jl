@@ -93,15 +93,15 @@ for rattle in (false, 0.1u"Å")
    calcFerr = D.PotFerr()
    calcVerr = D.PotVerr()
 
-   result = ACT.fdtest(calc, sys; rattle=rattle)
+   result = ACT.fdtest(sys, calc; rattle=rattle)
    @test result.f_result
    @test result.v_result
 
-   result = ACT.fdtest(calcFerr, sys; rattle=rattle)
+   result = ACT.fdtest(sys, calcFerr; rattle=rattle)
    @test !result.f_result
    @test result.v_result
 
-   result = ACT.fdtest(calcVerr, sys; rattle=rattle)
+   result = ACT.fdtest(sys, calcVerr; rattle=rattle)
    @test result.f_result
    @test !result.v_result
 end
