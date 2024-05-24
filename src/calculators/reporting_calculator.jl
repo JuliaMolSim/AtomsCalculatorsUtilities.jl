@@ -1,7 +1,7 @@
 
 export ReportingCalculator
 
-"""
+@doc """
     generate_message(sys, calculator, calc_result; kwargs...) = calc_result
 
 This is the default function that is called when `ReportingCalculator` collects
@@ -17,7 +17,7 @@ when message is sent.
 generate_message(sys, calculator, calc_result; kwargs...) = calc_result
 
 
-"""
+@doc """
     ReportingCalculator{T, TC, TF}
 
 `ReportingCalculator` collects information during calculation

@@ -2,7 +2,7 @@
 export ZeroVirialCalculator
 
 
-"""
+@doc """
     ZeroVirialCalculator{T,VU}
 
 Calculator that returns zeros for virial.

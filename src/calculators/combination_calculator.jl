@@ -3,7 +3,7 @@ using Folds
 export CombinationCalculator
 
 
-"""
+@doc """
     generate_keywords
 
 This function is called when `CombinationCalculator` is used.
@@ -32,7 +32,7 @@ Then calculates pairlist and passes it forward as a keyword.
 generate_keywords(sys, calculators...; kwargs...) = kwargs
 
 
-"""
+@doc """
     CombinationCalculator{N}
 
 You can combine several calculators to one calculator with this.
