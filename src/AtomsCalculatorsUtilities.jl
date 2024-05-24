@@ -1,7 +1,6 @@
 module AtomsCalculatorsUtilities
 
 
-
 module Calculators
     using AtomsCalculators
     using AtomsBase
@@ -12,5 +11,10 @@ module Calculators
     include("calculators/subsystem_calculator.jl")
     include("calculators/zero_virial_calculator.jl")
 end # module Calculators
+
+
+# generic utility codes for implementing site potentials 
+include("sitepotentials/sitepotentials.jl")
+
 
 end

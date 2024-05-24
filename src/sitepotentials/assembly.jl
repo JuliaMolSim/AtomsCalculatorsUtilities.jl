@@ -17,7 +17,7 @@ end
 # ---------------------------------------------------
 # main assembly codes 
 
-@generate_interface function potential_energy(
+function potential_energy(
                   sys, 
                   V::SitePotential; 
                   domain = 1:length(sys), 
@@ -37,7 +37,7 @@ end
 end
 
 
-@generate_interface function virial(
+function virial(
                   sys, 
                   V::SitePotential; 
                   domain   = 1:length(at), 
