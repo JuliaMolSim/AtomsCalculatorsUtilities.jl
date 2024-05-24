@@ -82,6 +82,8 @@ using Unitful
 
     @testset "ZeroVirialCalculator" begin
         zvcalc = ZeroVirialCalculator(MyType())
+        v = AtomsCalculators.virial(hydrogen, zvcalc)
+        @test all(iszero, v)
         test_energy_forces_virial(hydrogen, zvcalc)
     end
 end

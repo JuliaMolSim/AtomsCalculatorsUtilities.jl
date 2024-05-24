@@ -2,6 +2,27 @@
 export ZeroVirialCalculator
 
 
+"""
+    ZeroVirialCalculator{T,VU}
+
+Calculator that returns zeros for virial.
+This calculator helps to add virial calculation to a calculator
+that does not have it supported. This allows to embed the calculator
+to calculations that need some value for virial returned.
+
+# Fields
+- calculator::T    :  calculator used for potential energy and forces
+- virial_unit::VU  :  unit given to zero virial - default eV
+
+# Creation
+
+```julia
+ZeroVirialCalculator(
+    mycalculator;
+    virial_unit::Unitful.EnergyUnits=u"eV"
+)
+```
+"""
 mutable struct ZeroVirialCalculator{T,VU}
     calculator::T
     virial_unit::VU
