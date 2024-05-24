@@ -18,7 +18,7 @@ fdtest(F, dF, x; h0 = 1.0, verbose=true)
 
 
 """
-function fdtest(F, dF, x::AbstractVector{<: Real}; h0 = 1.0, verbose=true)
+function fdtest(F, dF, x::AbstractVector{<: Real}; h0 = 1.0, verbose=true, tol = 1e-3)
    E = F(x)
    dE = dF(x)
    errors = typeof(E)[]
@@ -39,7 +39,7 @@ function fdtest(F, dF, x::AbstractVector{<: Real}; h0 = 1.0, verbose=true)
       verbose && @printf(" %1.1e | %4.2e  \n", h, errors[end])
    end
    verbose && @printf("---------|----------- \n")
-   if minimum(errors) <= 1e-3 * maximum(errors)
+   if minimum(errors) <= tol * maximum(errors)
       verbose && println("passed")
       return true
    else
@@ -114,7 +114,7 @@ function _rattle(X, bb, r)
 end
 
 
-function _fdtest_forces(sys::AbstractSystem, calc, verbose, rattle) 
+function _fdtest_forces(sys::AbstractSystem, calc, verbose, rattle; kwargs...) 
    X0, bb0 = _rattle(position(sys), bounding_box(sys), rattle)
 
    _at(X) = FastSystem(bb0, 
@@ -128,12 +128,12 @@ function _fdtest_forces(sys::AbstractSystem, calc, verbose, rattle)
    dF = X -> - forces(_at(X), calc)
 
    verbose && println("Forces finite-difference test")
-   f_result = fdtest(F, dF, X0; verbose = verbose )
+   f_result = fdtest(F, dF, X0; verbose = verbose, kwargs... )
    return f_result 
 end
 
 
-function _fdtest_virial(sys::AbstractSystem, calc, verbose, rattle)
+function _fdtest_virial(sys::AbstractSystem, calc, verbose, rattle; kwargs...)
    X0, C0 = _rattle(position(sys), bounding_box(sys), rattle)
 
    # reference deformation is just the identify
@@ -158,7 +158,7 @@ function _fdtest_virial(sys::AbstractSystem, calc, verbose, rattle)
    dF = fvec -> Vector( ( - ustrip.(virial(_atv(fvec), calc)) )[:] )
 
    verbose && println("Virial finite-difference test")
-   v_result = fdtest(F, dF, f0; verbose = verbose )
+   v_result = fdtest(F, dF, f0; verbose = verbose, kwargs... )
    return v_result 
 end
 
@@ -181,20 +181,21 @@ function fdtest(sys::AbstractSystem, calc;
                 rattle = false, 
                 test_virial = true, 
                 test_forces = true, 
+                tol = 1e-3
                 )
 
    if test_forces 
-      f_result = _fdtest_forces(sys, calc, verbose, rattle)
+      f_result = _fdtest_forces(sys, calc, verbose, rattle; tol=tol)
    else 
       f_result = missing 
    end
 
    if test_virial
-      v_result = _fdtest_virial(sys, calc, verbose, rattle)
+      v_result = _fdtest_virial(sys, calc, verbose, rattle; tol=tol)
    else 
       v_result = missing
    end
 
-   return (f_result = f_result, v_result = v_result) 
+   return (f_result = f_result, v_result = v_result)
 end
 

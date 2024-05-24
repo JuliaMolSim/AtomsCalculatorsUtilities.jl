@@ -106,5 +106,16 @@ for rattle in (false, 0.1u"Å")
    @test !result.v_result
 end
 
+
+##
+
+# the next test should fail because the tolerance is too stringent 
+Nat = 8
+sys = D.random_system(Nat)
+calc = D.Pot()
+result = ACT.fdtest(sys, calc; rattle = 0.1u"Å", tol = 1e-10)
+@test !result.f_result
+@test !result.v_result
+
 ##
 
