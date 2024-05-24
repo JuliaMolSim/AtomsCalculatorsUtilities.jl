@@ -16,5 +16,8 @@ end # module Calculators
 # generic utility codes for implementing site potentials 
 include("sitepotentials/sitepotentials.jl")
 
+module Testing 
+    include("testing/fdtests.jl")
+end 
 
 end

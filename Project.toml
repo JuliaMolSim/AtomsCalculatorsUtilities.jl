@@ -13,6 +13,8 @@ ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
 NeighbourLists = "2fcf5ba9-9ed4-57cf-b73f-ff513e316b9c"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 StrideArrays = "d1fa6d79-ef01-42a6-86c9-f7c551f8593b"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
 
 [compat]
@@ -24,7 +26,10 @@ Folds = "0.2.10"
 NeighbourLists = "0.5.6"
 StrideArrays = "0.1"
 Unitful = "1"
-julia = "1.9"
+julia = "1.9, 1.10"
+StaticArrays = "1" 
+LinearAlgebra = "1.9, 1.10"
+Printf = "1.9, 1.10"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
