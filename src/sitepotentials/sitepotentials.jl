@@ -13,5 +13,6 @@ include("neighbourlist.jl")
 
 include("assembly.jl")
 
+include("hessian.jl")
 
 end 

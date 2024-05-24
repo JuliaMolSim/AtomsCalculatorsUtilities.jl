@@ -27,7 +27,7 @@ function potential_energy(
 
    E = Folds.sum( domain, executor; 
                   init = init_energy(sys, V) 
-                ) do i
+   ) do i
       Js, Rs, Zs, z0 = get_neighbours(sys, V, nlist, i) 
       e_i = eval_site(V, Rs, Zs, z0)
       e_i * energy_unit(V)
@@ -47,7 +47,7 @@ function virial(
 
    vir = Folds.sum( domain, executor; 
                     init = init_virial(sys, V) 
-                  ) do i 
+   ) do i 
       Js, Rs, Zs, z0 = get_neighbours(sys, V, nlist, i) 
       Ei, ∇Ei = eval_grad_site(V, Rs, Zs, z0)
       vir_i = site_virial(∇Ei, Rs)
@@ -72,7 +72,7 @@ function energy_forces_virial(
                       init=[ init_energy(sys, V), 
                              init_forces(sys, V), 
                              init_virial(sys, V) ]
-                     ) do (sub_domain, _)
+   ) do (sub_domain, _)
 
       E = init_energy(sys, V)
       frc = init_forces(sys, V)
@@ -91,6 +91,7 @@ function energy_forces_virial(
       end
       [E, frc, vir] 
    end
+   
    return (energy = E_F_V[1], forces = E_F_V[2], virial = E_F_V[3],)
 end
 

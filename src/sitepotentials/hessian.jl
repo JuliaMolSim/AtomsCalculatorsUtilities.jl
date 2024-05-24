@@ -1,4 +1,6 @@
 
+import ForwardDiff
+
 """
 Implements `hessian_site` using ForwardDiff on the site gradient. 
 This does NOT automatically implement the hessian for site potential. 
