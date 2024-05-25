@@ -17,6 +17,7 @@ end
 # ---------------------------------------------------
 # main assembly codes 
 
+# @generate_interface 
 function potential_energy(
                   sys, 
                   V::SitePotential; 
@@ -36,6 +37,7 @@ function potential_energy(
 end
 
 
+# @generate_interface 
 function virial(
                   sys, 
                   V::SitePotential; 
@@ -56,6 +58,7 @@ function virial(
 end
 
 
+# @generate_interface 
 function energy_forces_virial(
                   sys, 
                   V::SitePotential; 
