@@ -23,8 +23,10 @@ module DemoPairCalc
 
 
 
-   const uE = u"eV" 
-   const uL = u"Å"
+   uE = u"eV" 
+   uL = u"Å"
+   uL_sys = u"Å"
+
 
    _v(r) = exp( - sum(abs2, r) )
    _dv(r) = ForwardDiff.gradient(_v, r)
@@ -78,8 +80,8 @@ module DemoPairCalc
    function random_system(Nat)
       bb = [ SA[1.0,0.0,0.0] + 0.1 * rand(SVector{3, Float64}),
              SA[0.0,1.0,0.0] + 0.1 * rand(SVector{3, Float64}),
-             SA[0.0,0.0,1.0] + 0.1 * rand(SVector{3, Float64}), ] * uL
-      X = [ Atom(1, rand(SVector{3, Float64})*uL, missing) for _ = 1:5 ]
+             SA[0.0,0.0,1.0] + 0.1 * rand(SVector{3, Float64}), ] * uL_sys
+      X = [ Atom(1, rand(SVector{3, Float64})*uL_sys, missing) for _ = 1:5 ]
       periodic_system(X, bb)
    end
 
@@ -113,21 +115,27 @@ end
 
 ##
 
-# the next test should fail because the tolerance is too stringent 
 Nat = 8
 sys = D.random_system(Nat)
 calc = D.Pot()
+
+# the next test should fail because the tolerance is too stringent 
 result = ACT.fdtest(sys, calc; rattle = 0.1u"Å", tol = 1e-10)
 @test !result.f_result
 @test !result.v_result
 
 # another test that checks what happens if we change unit 
-Nat = 8
-sys = D.random_system(Nat)
-calc = D.Pot()
 result = ACT.fdtest(sys, calc; rattle = 0.1u"Å", h0 = 1e-12 * u"m")
 @test result.f_result
 @test result.v_result
 
-##
+# and finally a test with inconsistent units 
+D.uL = u"nm"
+sys = D.random_system(Nat)
+h0 =  1e-13 * u"m"
+@show unit(position(sys, 1)[1])
+@show unit(D.forces(sys, calc)[1][1])
+@show unit(h0)
+result = ACT.fdtest(sys, calc; rattle = 0.1u"Å", h0 = h0)
 
+##
