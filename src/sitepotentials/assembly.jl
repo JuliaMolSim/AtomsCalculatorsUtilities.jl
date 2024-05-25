@@ -17,8 +17,7 @@ end
 # ---------------------------------------------------
 # main assembly codes 
 
-# @generate_interface 
-function potential_energy(
+@generate_interface function AtomsCalculators.potential_energy(
                   sys, 
                   V::SitePotential; 
                   domain = 1:length(sys), 
@@ -37,8 +36,7 @@ function potential_energy(
 end
 
 
-# @generate_interface 
-function virial(
+@generate_interface function AtomsCalculators.virial(
                   sys, 
                   V::SitePotential; 
                   domain   = 1:length(sys), 
@@ -58,8 +56,7 @@ function virial(
 end
 
 
-# @generate_interface 
-function energy_forces_virial(
+function AtomsCalculators.energy_forces_virial(
                   sys, 
                   V::SitePotential; 
                   domain   = 1:length(sys), 
@@ -102,5 +99,5 @@ function AtomsCalculators.energy_forces(at, V::SitePotential; kwargs...)
    return (energy = efv.energy, forces = efv.forces)
 end
 
-AtomsCalculators.forces(at, V::SitePotential; kwargs...) = 
+@generate_interface AtomsCalculators.forces(at, V::SitePotential; kwargs...) = 
       AtomsCalculators.energy_forces(at, V; kwargs...)[:forces]
