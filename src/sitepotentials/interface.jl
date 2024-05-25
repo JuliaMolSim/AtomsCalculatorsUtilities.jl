@@ -79,7 +79,7 @@ function energy_unit end
 function length_unit end 
 
 
-
+force_unit(V::SitePotential) = energy_unit(V) / length_unit(V)
 
 
 # ---------------------------------------------------------------
@@ -104,10 +104,10 @@ end
 
 function init_forces(sys::AbstractSystem{D}, V::SitePotential) where {D} 
    TL, uL = length_types(sys)
-   return zero(SVector{D, TL}, length(sys)) * energy_unit(V) / uL 
-end
+   return zeros(SVector{D, TL}, length(sys)) * energy_unit(V) / uL 
+end 
 
 function init_virial(sys::AbstractSystem{D}, V::SitePotential) where {D}
    TL, uL = length_types(sys)
-   return zero(SMatrix{D,D,TL}, length(sys)) * energy_unit(V)
+   return zero(SMatrix{D,D,TL}) * energy_unit(V)
 end

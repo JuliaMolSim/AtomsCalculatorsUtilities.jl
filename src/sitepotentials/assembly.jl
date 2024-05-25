@@ -7,7 +7,7 @@ import AtomsCalculators: @generate_interface,
 # utilities 
 
 function site_virial(dV, Rs) 
-   TV = promotetype(eltype(eltype(dV)), eltype(eltype(Rs)))
+   TV = promote_type(eltype(eltype(dV)), eltype(eltype(Rs)))
    return - sum( dv_i * 𝐫_i' for (dv_i, 𝐫_i) in zip(dV, Rs); 
                  init = zero(SMatrix{3, 3, TV}) )
 end
@@ -29,8 +29,7 @@ function potential_energy(
                   init = init_energy(sys, V) 
    ) do i
       Js, Rs, Zs, z0 = get_neighbours(sys, V, nlist, i) 
-      e_i = eval_site(V, Rs, Zs, z0)
-      e_i * energy_unit(V)
+      e_i = eval_site(V, Rs, Zs, z0) * energy_unit(V)
    end
 
    return E
@@ -40,9 +39,9 @@ end
 function virial(
                   sys, 
                   V::SitePotential; 
-                  domain   = 1:length(at), 
+                  domain   = 1:length(sys), 
                   executor = ThreadedEx(),
-                  nlist    = PairList(at, cutoff_radius(V)),
+                  nlist    = PairList(sys, cutoff_radius(V)),
                   kwargs...)
 
    vir = Folds.sum( domain, executor; 
@@ -50,8 +49,7 @@ function virial(
    ) do i 
       Js, Rs, Zs, z0 = get_neighbours(sys, V, nlist, i) 
       Ei, ∇Ei = eval_grad_site(V, Rs, Zs, z0)
-      vir_i = site_virial(∇Ei, Rs)
-      vir_i * energy_unit(V)
+      vir_i = site_virial(∇Ei, Rs) * energy_unit(V)
    end
 
    return vir
@@ -79,15 +77,15 @@ function energy_forces_virial(
       vir = init_virial(sys, V)
 
       for i in sub_domain
-         Js, Rs, Zs, z0 = get_neighbours(at, V, nlist, i)
+         Js, Rs, Zs, z0 = get_neighbours(sys, V, nlist, i)
          Ei, ∇Ei = eval_grad_site(V, Rs, Zs, z0)
-         E += v * energy_unit(V)
+         E += Ei * energy_unit(V)
          vir += site_virial(∇Ei, Rs) * energy_unit(V)
          # we have to update the forces in a loop since Js indices can be repeated
          for α in 1:length(Js)
-            f[Js[α]] -= dv[α] * force_unit(V)
-         end
-         f[i] += sum(dv) * force_unit(V)
+            frc[Js[α]] -= ∇Ei[α] * force_unit(V)
+          end
+          frc[i] += sum(∇Ei) * force_unit(V)
       end
       [E, frc, vir] 
    end
