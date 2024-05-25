@@ -102,8 +102,10 @@ function _fdtest_forces(sys::AbstractSystem, calc, verbose, rattle, h0; kwargs..
    uE = unit(potential_energy(sys, calc))
    uL_sys = unit(position(sys, 1)[1]) 
    @assert unit(h0) == uL_sys
-   @assert unit(X0[1][1]) == uL_sys 
-   @assert unit(bb0[1][1]) == uL_sys
+   @assert unit(X0[1][1]) == uL_sys
+   if !isinfinite(sys) 
+      @assert unit(bb0[1][1]) == uL_sys
+   end
 
    # the input here is unit-less ... 
    _at(X) = FastSystem(bb0, 
@@ -179,7 +181,7 @@ returns a named tuple with the results.
 function fdtest(sys::AbstractSystem, calc;
                 verbose = true, 
                 rattle = false, 
-                test_virial = true, 
+                test_virial = !(isinfinite(sys)), 
                 test_forces = true, 
                 tol = 1e-3, 
                 h0 = 1e-2 * u"Å",   # a sensible default for atoms
