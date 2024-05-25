@@ -13,4 +13,8 @@ module Calculators
     include("calculators/zero_virial_calculator.jl")
 end # module Calculators
 
+module Testing 
+    include("testing/fdtests.jl")
+end 
+
 end
