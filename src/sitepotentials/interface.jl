@@ -98,7 +98,8 @@ end
 
 function init_energy(sys::AbstractSystem, V::SitePotential) 
    TL, uL = length_types(sys)
-   return zero(TL) * uL
+   uE = energy_unit(V)
+   return zero(TL) * uE 
 end
 
 function init_forces(sys::AbstractSystem{D}, V::SitePotential) where {D} 
