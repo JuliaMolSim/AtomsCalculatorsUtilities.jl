@@ -28,7 +28,7 @@ function fdtest(F, dF, x::AbstractVector{<: Real}; h0 = 1e-2, verbose=true, tol 
    verbose && @printf("    h    | error \n")
    verbose && @printf("---------|----------- \n")
    for p = 0:9
-      h = 0.1^p
+      h = 0.1^p * h0 
       dEh = copy(dE)
       for n = 1:length(dE)
          x[n] += h
