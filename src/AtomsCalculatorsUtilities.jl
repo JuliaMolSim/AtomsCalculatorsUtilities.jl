@@ -13,6 +13,10 @@ module Calculators
     include("calculators/zero_virial_calculator.jl")
 end # module Calculators
 
+module IPI
+    include("ipi/ipi_interface.jl")
+end
+
 module Testing 
     include("testing/fdtests.jl")
 end 
