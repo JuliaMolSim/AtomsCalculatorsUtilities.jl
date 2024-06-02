@@ -26,7 +26,7 @@ end
                   kwargs...)
 
    E = Folds.sum( domain, executor; 
-                  init = init_energy(sys, V) 
+                  init = zero_energy(sys, V) 
    ) do i
       Js, Rs, Zs, z0 = get_neighbours(sys, V, nlist, i) 
       e_i = eval_site(V, Rs, Zs, z0) * energy_unit(V)
@@ -45,7 +45,7 @@ end
                   kwargs...)
 
    vir = Folds.sum( domain, executor; 
-                    init = init_virial(sys, V) 
+                    init = zero_virial(sys, V) 
    ) do i 
       Js, Rs, Zs, z0 = get_neighbours(sys, V, nlist, i) 
       Ei, ∇Ei = eval_grad_site(V, Rs, Zs, z0)
@@ -67,14 +67,14 @@ function AtomsCalculators.energy_forces_virial(
 
    E_F_V = Folds.sum( collect(chunks(domain, ntasks)), 
                       executor;
-                      init=[ init_energy(sys, V), 
-                             init_forces(sys, V), 
-                             init_virial(sys, V) ]
+                      init=[ zero_energy(sys, V), 
+                             zero_forces(sys, V), 
+                             zero_virial(sys, V) ]
    ) do (sub_domain, _)
 
-      E = init_energy(sys, V)
-      frc = init_forces(sys, V)
-      vir = init_virial(sys, V)
+      E = zero_energy(sys, V)
+      frc = zero_forces(sys, V)
+      vir = zero_virial(sys, V)
 
       for i in sub_domain
          Js, Rs, Zs, z0 = get_neighbours(sys, V, nlist, i)

@@ -96,18 +96,25 @@ function length_types(sys::AbstractSystem)
    return eltype(ustrip(r)), unit(r)
 end
 
-function init_energy(sys::AbstractSystem, V::SitePotential) 
+function zero_energy(sys::AbstractSystem, V::SitePotential) 
    TL, uL = length_types(sys)
    uE = energy_unit(V)
    return zero(TL) * uE 
 end
 
-function init_forces(sys::AbstractSystem{D}, V::SitePotential) where {D} 
+function zero_forces(sys::AbstractSystem{D}, V::SitePotential) where {D} 
    TL, uL = length_types(sys)
    return zeros(SVector{D, TL}, length(sys)) * energy_unit(V) / uL 
 end 
 
-function init_virial(sys::AbstractSystem{D}, V::SitePotential) where {D}
+function zero_virial(sys::AbstractSystem{D}, V::SitePotential) where {D}
    TL, uL = length_types(sys)
    return zero(SMatrix{D,D,TL}) * energy_unit(V)
 end
+
+function AtomsCalculators.promote_force_type(sys::AbstractSystem{D}, 
+                                          calc::SitePotential) where {D} 
+   TL, uL = length_types(sys)
+   TF = typeof(one(TL) * force_unit(calc))
+   return SVector{D, TF}
+end 
