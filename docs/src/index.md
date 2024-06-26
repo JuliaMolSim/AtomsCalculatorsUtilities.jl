@@ -10,5 +10,10 @@ Documentation for [AtomsCalculatorsUtilities](https://github.com/tjjarvinen/Atom
 ```
 
 ```@autodocs
-Modules = [AtomsCalculatorsUtilities, AtomsCalculatorsUtilities.Calculators]
+Modules = [
+    AtomsCalculatorsUtilities,
+    AtomsCalculatorsUtilities.Calculators,
+    AtomsCalculatorsUtilities.IPI,
+    AtomsCalculatorsUtilities.Testing
+]
 ```
