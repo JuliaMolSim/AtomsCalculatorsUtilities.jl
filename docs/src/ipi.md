@@ -45,7 +45,7 @@ i-PI protocol will always calculate energy, forces and virial, thus your calcula
 calculation.
 
 For calculators that do not support virial calculations `AtomsUtilityCalcualtors.Calculators` implements
-`ZeroVirialCalculator` that adds virial caluculation support for your calculator. Note that this is in correct. So use it on your own risk!
+`ZeroVirialCalculator` that adds virial caluculation support for your calculator. Note that this is in correct. So use it at your own risk!
 
 One good use case for this is constant volume simulations, where
 virial is ignored, but i-PI protocol still calculates it.

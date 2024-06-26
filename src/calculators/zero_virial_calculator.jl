@@ -10,6 +10,8 @@ This calculator helps to add virial calculation to a calculator
 that does not have it supported. This allows to embed the calculator
 to calculations that need some value for virial returned.
 
+Note that forcing zero virial is incorrect. Use at your own risk.
+
 # Fields
 - calculator::T    :  calculator used for potential energy and forces
 - virial_unit::VU  :  unit given to zero virial - default eV
