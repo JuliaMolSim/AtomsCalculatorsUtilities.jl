@@ -27,6 +27,7 @@ mutable struct ZeroVirialCalculator{T,VU}
     calculator::T
     virial_unit::VU
     function ZeroVirialCalculator(calc; virial_unit::Unitful.EnergyUnits=u"eV")
+        @warn "Setting virial to zeros leads to errors! Use on your own risk."
         new{typeof(calc), typeof(virial_unit)}(calc, virial_unit)
     end
 end
