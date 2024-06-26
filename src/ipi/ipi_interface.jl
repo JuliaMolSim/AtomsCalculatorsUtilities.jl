@@ -82,7 +82,7 @@ function sendforce(comm, e::Number, forces::AbstractVector, virial::AbstractMatr
 end
 
 """
-    run_driver(address, potential, init_structure; port=31415, unixsocket=false )
+    run_driver(address, calculator, init_structure; port=31415, unixsocket=false )
 
 Connect I-PI driver to server at given `address`. Use kword `port` (default 31415) to
 specify port. If kword `unixsocket` is true, `address` is understood to be the name of the socket
@@ -91,8 +91,11 @@ and `port` option is ignored.
 You need to give initial structure as I-PI protocol does not transfer atom symbols.
 This means that, if you want to change the number of atoms or their symbols, you need
 to lauch a new driver.
+
+Calculator events are logged at info level by default. If you do not want them to be logged,
+change logging status for IPI module.
 """
-function run_driver(address, potential, init_structure; port=31415, unixsocket=false )
+function run_driver(address, calc, init_structure; port=31415, unixsocket=false )
     if unixsocket
         comm = connect("/tmp/ipi_"*address)
     else
@@ -132,7 +135,7 @@ function run_driver(address, potential, init_structure; port=31415, unixsocket=f
             cell = pos[:cell]
             @assert length(symbols) == length(positions) "received amount of position data does no match the atomic symbol data"
             system = FastSystem(cell, pbc, positions, symbols, anumbers, masses)
-            data = AtomsCalculators.energy_forces_virial(system, potential)
+            data = AtomsCalculators.energy_forces_virial(system, calc)
             has_data = true
         elseif header == "GETFORCE"
             sendforce(comm, data[:energy], data[:forces], data[:virial])
