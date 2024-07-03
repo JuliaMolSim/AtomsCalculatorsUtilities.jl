@@ -140,3 +140,32 @@ function AtomsCalculators.calculate(
     end
     return tmp
 end
+
+
+
+function AtomsCalculators.energy_forces(
+    sys, 
+    calc::ReportingCalculator; 
+    kwargs...
+)
+    ef = AtomsCalculators.energy_forces(sys, calc.calculator; kwargs...)
+    mess = calc.message(sys, calc.calculator, ef; kwargs...)
+    if ! isnothing(mess)
+        put!(calc.channel, mess)
+    end
+    return ef
+end
+
+
+function AtomsCalculators.energy_forces_virial(
+    sys, 
+    calc::ReportingCalculator; 
+    kwargs...
+)
+    efv = AtomsCalculators.energy_forces_virial(sys, calc.calculator; kwargs...)
+    mess = calc.message(sys, calc.calculator, efv; kwargs...)
+    if ! isnothing(mess)
+        put!(calc.channel, mess)
+    end
+    return efv
+end

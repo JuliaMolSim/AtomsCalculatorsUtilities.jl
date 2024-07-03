@@ -120,3 +120,22 @@ AtomsCalculators.@generate_interface function AtomsCalculators.virial(sys, calc:
         AtomsCalculators.virial(sys, c; new_kwargs...)
     end
 end
+
+
+function AtomsCalculators.energy_forces(sys, calc::CombinationCalculator; kwargs...)
+    new_kwargs = calc.keywords(sys, calc.calculators...; kwargs...)
+    tmp = Folds.sum( calc.calculators ) do c
+        ef = AtomsCalculators.energy_forces(sys, c; new_kwargs...)
+        [ef.energy, ef.forces]
+    end
+    return (energy=tmp[1], forces=tmp[2])
+end
+
+function AtomsCalculators.energy_forces_virial(sys, calc::CombinationCalculator; kwargs...)
+    new_kwargs = calc.keywords(sys, calc.calculators...; kwargs...)
+    tmp = Folds.sum( calc.calculators ) do c
+        efv = AtomsCalculators.energy_forces_virial(sys, c; new_kwargs...)
+        [efv.energy, efv.forces, efv.virial]
+    end
+    return (energy=tmp[1], forces=tmp[2], virial=tmp[3])
+end

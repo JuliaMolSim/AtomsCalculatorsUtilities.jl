@@ -67,3 +67,26 @@ AtomsCalculators.@generate_interface function AtomsCalculators.virial(sys, calc:
     sub_sys = _generate_subsys(sys, calc)
     return AtomsCalculators.virial(sub_sys, calc.calculator; kwargs...)
 end
+
+
+function AtomsCalculators.energy_forces(sys, calc::SubSystemCalculator; kwargs...)
+    sub_sys = _generate_subsys(sys, calc)
+    tmp_ef = AtomsCalculators.energy_forces(sub_sys, calc.calculator; kwargs...)
+    tmp_f = tmp_ef.forces
+    f = zeros(AtomsCalculators.promote_force_type(sys, calc), length(sys))
+    for (i, val) in zip(calc.subsys, tmp_f)
+        f[i] += val
+    end
+    return (energy=tmp_ef.energy, forces=f)
+end
+
+function AtomsCalculators.energy_forces_virial(sys, calc::SubSystemCalculator; kwargs...)
+    sub_sys = _generate_subsys(sys, calc)
+    tmp_efv = AtomsCalculators.energy_forces_virial(sub_sys, calc.calculator; kwargs...)
+    tmp_f = tmp_efv.forces
+    f = zeros(AtomsCalculators.promote_force_type(sys, calc), length(sys))
+    for (i, val) in zip(calc.subsys, tmp_f)
+        f[i] += val
+    end
+    return (energy=tmp_efv.energy, forces=f, virial=tmp_efv.virial)
+end
