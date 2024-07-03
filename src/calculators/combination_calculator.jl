@@ -82,7 +82,7 @@ Base.firstindex(cc::CombinationCalculator) = 1
 
 AtomsCalculators.@generate_interface function AtomsCalculators.potential_energy(sys, calc::CombinationCalculator; kwargs...)
     new_kwargs = calc.keywords(sys, calc.calculators...; kwargs...)
-    return Folds.sum( calc.calculators ) do c
+    return Folds.sum( calc.calculators, calc.executor ) do c
         AtomsCalculators.potential_energy(sys, c; new_kwargs...)
     end
 end
@@ -91,7 +91,7 @@ end
 # as we want special version for forces!
 function AtomsCalculators.forces(sys, calc::CombinationCalculator; kwargs...)
     new_kwargs = calc.keywords(sys, calc.calculators...; kwargs...)
-    return Folds.sum( calc.calculators ) do c
+    return Folds.sum( calc.calculators, calc.executor ) do c
         AtomsCalculators.forces(sys, c; new_kwargs...)
     end
 end
@@ -124,7 +124,7 @@ end
 
 function AtomsCalculators.energy_forces(sys, calc::CombinationCalculator; kwargs...)
     new_kwargs = calc.keywords(sys, calc.calculators...; kwargs...)
-    tmp = Folds.sum( calc.calculators ) do c
+    tmp = Folds.sum( calc.calculators, calc.executor ) do c
         ef = AtomsCalculators.energy_forces(sys, c; new_kwargs...)
         [ef.energy, ef.forces]
     end
@@ -133,7 +133,7 @@ end
 
 function AtomsCalculators.energy_forces_virial(sys, calc::CombinationCalculator; kwargs...)
     new_kwargs = calc.keywords(sys, calc.calculators...; kwargs...)
-    tmp = Folds.sum( calc.calculators ) do c
+    tmp = Folds.sum( calc.calculators, calc.executor ) do c
         efv = AtomsCalculators.energy_forces_virial(sys, c; new_kwargs...)
         [efv.energy, efv.forces, efv.virial]
     end
