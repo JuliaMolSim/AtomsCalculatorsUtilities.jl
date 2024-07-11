@@ -35,8 +35,11 @@ mutable struct ZeroVirialCalculator{T,VU}
 end
 
 
-AtomsCalculators.zero_forces(sys, calc::ZeroVirialCalculator) = AtomsCalculators.zero_forces(sys, calc.calculator)
-AtomsCalculators.promote_force_type(sys, calc::ZeroVirialCalculator) = AtomsCalculators.promote_force_type(sys, calc.calculator)
+#AtomsCalculators.zero_forces(sys, calc::ZeroVirialCalculator) = AtomsCalculators.zero_forces(sys, calc.calculator)
+AtomsCalculators.promote_force_type(sys::AtomsBase.AbstractSystem, calc::ZeroVirialCalculator) = AtomsCalculators.promote_force_type(sys, calc.calculator)
+
+AtomsCalculators.energy_unit(calc::ZeroVirialCalculator) = AtomsCalculators.energy_unit(calc.calculator)
+AtomsCalculators.length_unit(calc::ZeroVirialCalculator) = AtomsCalculators.length_unit(calc.calculator)
 
 
 function AtomsCalculators.potential_energy(sys, calc::ZeroVirialCalculator; kwargs...)
@@ -62,10 +65,24 @@ function AtomsCalculators.forces!(f, sys, calc::ZeroVirialCalculator; kwargs...)
     return AtomsCalculators.forces!(f, sys, calc.calculator; kwargs...)
 end
 
-function AtomsCalculators.calculate(f::AtomsCalculators.Forces, sys, calc::ZeroVirialCalculator; kwargs...)
-    return AtomsCalculators.calculate(f, sys, calc.calculator; kwargs...)
+function AtomsCalculators.calculate(
+    f::AtomsCalculators.Forces, 
+    sys, 
+    calc::ZeroVirialCalculator,
+    pr=nothing,
+    st=nothing; 
+    kwargs...
+)
+    return AtomsCalculators.calculate(f, sys, calc.calculator, pr, st; kwargs...)
 end
 
-function AtomsCalculators.calculate(e::AtomsCalculators.Energy, sys, calc::ZeroVirialCalculator; kwargs...)
+function AtomsCalculators.calculate(
+    e::AtomsCalculators.Energy, 
+    sys, 
+    calc::ZeroVirialCalculator,
+    pr=nothing,
+    st=nothing; 
+    kwargs...
+)
     return AtomsCalculators.calculate(e, sys, calc.calculator; kwargs...)
 end

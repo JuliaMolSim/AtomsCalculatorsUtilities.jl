@@ -59,13 +59,27 @@ CombinationCalculator( calc1, calc2, ...; executor=SequentialEx())
 ```
 
 """
-mutable struct CombinationCalculator{N, T} # Mutable struct so that calculators can mutate themself
+mutable struct CombinationCalculator{N,T,TE,TL} # Mutable struct so that calculators can mutate themself
     calculators::NTuple{N,Any}
     executor::Any
     keywords::Function
-    function CombinationCalculator(calculators...; executor=SequentialEx(), keyword_generator=nothing)
+    energy_unit::TE
+    length_unit::TL
+    function CombinationCalculator(
+        calculators...; 
+        executor=SequentialEx(), 
+        keyword_generator=nothing,
+        energy_unit=AtomsCalculators.energy_unit(calculators[1]),
+        length_unit=AtomsCalculators.length_unit(calculators[1])
+    )
         kgen = something(keyword_generator, generate_keywords)
-        new{length(calculators), typeof(kgen)}(calculators, executor, kgen)
+        new{length(calculators), typeof(kgen), typeof(energy_unit), typeof(length_unit)}(
+            calculators, 
+            executor, 
+            kgen, 
+            energy_unit, 
+            length_unit
+        )
     end
 end
 
@@ -80,26 +94,41 @@ Base.lastindex(cc::CombinationCalculator) = length(cc)
 Base.firstindex(cc::CombinationCalculator) = 1
 
 
+AtomsCalculators.energy_unit(cc::CombinationCalculator) = cc.energy_unit
+AtomsCalculators.length_unit(cc::CombinationCalculator) = cc.length_unit
+
+
 AtomsCalculators.@generate_interface function AtomsCalculators.potential_energy(sys, calc::CombinationCalculator; kwargs...)
     new_kwargs = calc.keywords(sys, calc.calculators...; kwargs...)
-    return Folds.sum( calc.calculators, calc.executor ) do c
+    e =  Folds.sum( calc.calculators, calc.executor ) do c
         AtomsCalculators.potential_energy(sys, c; new_kwargs...)
     end
+    return uconvert(calc.energy_unit, e)
 end
 
 # We don't use AtomsCalculators.@generate_interface here
 # as we want special version for forces!
 function AtomsCalculators.forces(sys, calc::CombinationCalculator; kwargs...)
     new_kwargs = calc.keywords(sys, calc.calculators...; kwargs...)
-    return Folds.sum( calc.calculators, calc.executor ) do c
+    f =  Folds.sum( calc.calculators, calc.executor ) do c
         AtomsCalculators.forces(sys, c; new_kwargs...)
     end
+    fz = AtomsCalculators.zero_forces(sys, calc)
+    fz .+= f
+    return fz
 end
 
 
-function AtomsCalculators.calculate( ::AtomsCalculators.Forces, sys, calc::CombinationCalculator; kwargs...)
+function AtomsCalculators.calculate(
+    ft::AtomsCalculators.Forces, 
+    sys, 
+    calc::CombinationCalculator, 
+    pr=nothing, 
+    st=nothing; 
+    kwargs...
+)
     f = AtomsCalculators.forces(sys, calc; kwargs...)
-    return (; :forces => f)
+    return (forces = f, state = nothing)
 end
 
 
@@ -116,9 +145,10 @@ end
 
 AtomsCalculators.@generate_interface function AtomsCalculators.virial(sys, calc::CombinationCalculator; kwargs...)
     new_kwargs = calc.keywords(sys, calc.calculators...; kwargs...)
-    return Folds.sum( calc.calculators ) do c
+    v =  Folds.sum( calc.calculators, calc.executor ) do c
         AtomsCalculators.virial(sys, c; new_kwargs...)
     end
+    return uconvert.(calc.energy_unit, v)
 end
 
 
@@ -128,6 +158,10 @@ function AtomsCalculators.energy_forces(sys, calc::CombinationCalculator; kwargs
         ef = AtomsCalculators.energy_forces(sys, c; new_kwargs...)
         [ef.energy, ef.forces]
     end
+    tmp[1] = uconvert(calc.energy_unit, tmp[1])
+    fz = AtomsCalculators.zero_forces(sys, calc)
+    fz .+= tmp[2]
+    tmp[2] = fz
     return (energy=tmp[1], forces=tmp[2])
 end
 
@@ -137,5 +171,10 @@ function AtomsCalculators.energy_forces_virial(sys, calc::CombinationCalculator;
         efv = AtomsCalculators.energy_forces_virial(sys, c; new_kwargs...)
         [efv.energy, efv.forces, efv.virial]
     end
+    tmp[1] = uconvert(calc.energy_unit, tmp[1])
+    fz = AtomsCalculators.zero_forces(sys, calc)
+    fz .+= tmp[2]
+    tmp[2] = fz
+    tmp[3] = uconvert.(calc.energy_unit, tmp[3])
     return (energy=tmp[1], forces=tmp[2], virial=tmp[3])
 end

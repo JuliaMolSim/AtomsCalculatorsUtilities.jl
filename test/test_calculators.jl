@@ -1,7 +1,7 @@
 using AtomsCalculatorsUtilities.Calculators
 using AtomsBase
 using AtomsCalculators
-using AtomsCalculators.AtomsCalculatorsTesting
+using AtomsCalculators.Testing
 using StaticArrays
 using Test
 using Unitful
@@ -9,6 +9,9 @@ using Unitful
 
 struct MyType
 end
+
+AtomsCalculators.energy_unit(::MyType) = u"eV"
+AtomsCalculators.length_unit(::MyType) = u"Å"
 
 AtomsCalculators.@generate_interface function AtomsCalculators.potential_energy(system, calculator::MyType; kwargs...)
     return 1.0u"eV" * length(system)

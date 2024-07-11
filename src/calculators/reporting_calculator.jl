@@ -62,8 +62,11 @@ end
 Base.fetch(rcalc::ReportingCalculator) = fetch(rcalc.channel)
 Base.take!(rcalc::ReportingCalculator) = take!(rcalc.channel)
 
-AtomsCalculators.zero_forces(sys, calc::ReportingCalculator) = AtomsCalculators.zero_forces(sys, calc.calculator)
-AtomsCalculators.promote_force_type(sys, calc::ReportingCalculator) = AtomsCalculators.promote_force_type(sys, calc.calculator)
+#AtomsCalculators.zero_forces(sys, calc::ReportingCalculator) = AtomsCalculators.zero_forces(sys, calc.calculator)
+AtomsCalculators.promote_force_type(sys::AtomsBase.AbstractSystem, calc::ReportingCalculator) = AtomsCalculators.promote_force_type(sys, calc.calculator)
+
+AtomsCalculators.energy_unit(calc::ReportingCalculator) = AtomsCalculators.energy_unit(calc.calculator)
+AtomsCalculators.length_unit(calc::ReportingCalculator) = AtomsCalculators.length_unit(calc.calculator)
 
 
 function AtomsCalculators.potential_energy(
@@ -130,10 +133,12 @@ function AtomsCalculators.calculate(
         AtomsCalculators.Virial
     },
     sys, 
-    calc::ReportingCalculator; 
+    calc::ReportingCalculator,
+    pr=nothing,
+    st=nothing; 
     kwargs...
 )
-    tmp = AtomsCalculators.calculate(calc_method, sys, calc.calculator; kwargs...)
+    tmp = AtomsCalculators.calculate(calc_method, sys, calc.calculator, pr, st; kwargs...)
     mess = calc.message(sys, calc.calculator, tmp; kwargs...)
     if ! isnothing(mess)
         put!(calc.channel, mess)
