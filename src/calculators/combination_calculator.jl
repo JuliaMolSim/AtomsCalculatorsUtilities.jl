@@ -98,12 +98,34 @@ AtomsCalculators.energy_unit(cc::CombinationCalculator) = cc.energy_unit
 AtomsCalculators.length_unit(cc::CombinationCalculator) = cc.length_unit
 
 
-AtomsCalculators.@generate_interface function AtomsCalculators.potential_energy(sys, calc::CombinationCalculator; kwargs...)
+AtomsCalculators.@generate_interface function AtomsCalculators.calculate(
+    et::AtomsCalculators.Energy, 
+    sys, 
+    calc::CombinationCalculator, 
+    pr=nothing, 
+    st=nothing; 
+    kwargs...
+)
     new_kwargs = calc.keywords(sys, calc.calculators...; kwargs...)
-    e =  Folds.sum( calc.calculators, calc.executor ) do c
-        AtomsCalculators.potential_energy(sys, c; new_kwargs...)
+    if isnothing(pr)
+        tpr = Tuple( nothing for _ in 1:length(calc))
+    else
+        tpr = Tuple( pr[i] for i in 1:length(calc)  ) # This checks for correct length too
     end
-    return uconvert(calc.energy_unit, e)
+    if isnothing(st)
+        tst = Tuple( nothing for _ in 1:length(calc))
+    else
+        tst = Tuple( st[i] for i in 1:length(calc)  ) # This checks for correct length too
+    end
+    tmp =  Folds.map( zip(calc.calculators, tpr, tst), calc.executor ) do (c, p, s)
+        AtomsCalculators.calculate(et, sys, c, p, s; new_kwargs...)
+    end
+    Etot = sum( tmp ) do x
+        x.energy
+    end
+    Etot = uconvert(calc.energy_unit, Etot)
+    st_out = Tuple( x.state for x in tmp )
+    return ( energy=Etot, state=st_out  )
 end
 
 # We don't use AtomsCalculators.@generate_interface here
@@ -126,9 +148,31 @@ function AtomsCalculators.calculate(
     pr=nothing, 
     st=nothing; 
     kwargs...
-)
-    f = AtomsCalculators.forces(sys, calc; kwargs...)
-    return (forces = f, state = nothing)
+)   
+    new_kwargs = calc.keywords(sys, calc.calculators...; kwargs...)
+
+    # Check and prepare parameters and state
+    if isnothing(pr)
+        tpr = Tuple( nothing for _ in 1:length(calc))
+    else
+        tpr = Tuple( pr[i] for i in 1:length(calc)  ) # This checks for correct length too
+    end
+    if isnothing(st)
+        tst = Tuple( nothing for _ in 1:length(calc))
+    else
+        tst = Tuple( st[i] for i in 1:length(calc)  ) # This checks for correct length too
+    end
+    
+    tmp =  Folds.map( zip(calc.calculators, tpr, tst), calc.executor ) do (c, p, s)
+        AtomsCalculators.calculate(ft, sys, c, p, s; new_kwargs...)
+    end
+    Ftot = sum( tmp ) do x
+        x.forces
+    end
+    fz = AtomsCalculators.zero_forces(sys, calc)
+    fz .+= Ftot
+    st_out = Tuple( x.state for x in tmp )
+    return (forces = fz, state = st_out)
 end
 
 
@@ -143,12 +187,39 @@ function AtomsCalculators.forces!(f, sys, calc::CombinationCalculator; kwargs...
 end
 
 
-AtomsCalculators.@generate_interface function AtomsCalculators.virial(sys, calc::CombinationCalculator; kwargs...)
+AtomsCalculators.@generate_interface function AtomsCalculators.calculate(
+    vt::AtomsCalculators.Virial,
+    sys, 
+    calc::CombinationCalculator,
+    pr::Union{Nothing,Tuple}=nothing,
+    st::Union{Nothing,Tuple}=nothing,; 
+    kwargs...
+)
     new_kwargs = calc.keywords(sys, calc.calculators...; kwargs...)
-    v =  Folds.sum( calc.calculators, calc.executor ) do c
-        AtomsCalculators.virial(sys, c; new_kwargs...)
+
+    # Check and prepare parameters and state
+    if isnothing(pr)
+        tpr = Tuple( nothing for _ in 1:length(calc))
+    else
+        tpr = Tuple( pr[i] for i in 1:length(calc)  ) # This checks for correct length too
     end
-    return uconvert.(calc.energy_unit, v)
+    if isnothing(st)
+        tst = Tuple( nothing for _ in 1:length(calc))
+    else
+        tst = Tuple( st[i] for i in 1:length(calc)  ) # This checks for correct length too
+    end
+
+    tmp =  Folds.map( zip(calc.calculators, tpr, tst), calc.executor ) do (c, p, s)
+        AtomsCalculators.calculate(vt, sys, c, p, s; new_kwargs...)
+    end
+    
+    # Gather output
+    vir_tot = sum( tmp ) do x
+        x.virial
+    end
+    Vtot = uconvert.(calc.energy_unit, vir_tot)
+    st_out = Tuple( x.state for x in tmp )
+    return ( virial=Vtot, state=st_out  )
 end
 
 
