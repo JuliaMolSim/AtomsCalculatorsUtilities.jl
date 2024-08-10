@@ -1,7 +1,4 @@
-import AtomsCalculators: @generate_interface, 
-                         potential_energy, 
-                         virial, 
-                         energy_forces_virial 
+
 
 # ---------------------------------------------------
 # utilities 
@@ -17,7 +14,7 @@ end
 # ---------------------------------------------------
 # main assembly codes 
 
-@generate_interface function AtomsCalculators.potential_energy(
+function potential_energy(
                   sys, 
                   V::SitePotential; 
                   domain = 1:length(sys), 
@@ -47,7 +44,7 @@ end
    vir = Folds.sum( domain, executor; 
                     init = zero_virial(sys, V) 
    ) do i 
-      Js, Rs, Zs, z0 = get_neighbours(sys, V, nlist, i) 
+      Js, Rs, Zs, z0 = get_neighbours(sys, V, nlist, i)
       Ei, ∇Ei = eval_grad_site(V, Rs, Zs, z0)
       vir_i = site_virial(∇Ei, Rs) * energy_unit(V)
    end
@@ -99,5 +96,5 @@ function AtomsCalculators.energy_forces(at, V::SitePotential; kwargs...)
    return (energy = efv.energy, forces = efv.forces)
 end
 
-@generate_interface AtomsCalculators.forces(at, V::SitePotential; kwargs...) = 
+AtomsCalculators.forces(at, V::SitePotential; kwargs...) = 
       AtomsCalculators.energy_forces(at, V; kwargs...)[:forces]

@@ -1,3 +1,4 @@
+
 """
 `SitePotential`: abstractsupertype for generic site potentials. Concrete subtypes 
 should overload 
@@ -74,12 +75,9 @@ function block_hessian_site end
 
 function hessian_site end 
 
-function energy_unit end 
 
-function length_unit end 
-
-
-force_unit(V::SitePotential) = energy_unit(V) / length_unit(V)
+# TODO: check this is no longer needed
+# force_unit(V::SitePotential) = energy_unit(V) / length_unit(V)
 
 
 # ---------------------------------------------------------------
@@ -95,26 +93,3 @@ function length_types(sys::AbstractSystem)
    r = position(sys, 1)[1][1]
    return eltype(ustrip(r)), unit(r)
 end
-
-function zero_energy(sys::AbstractSystem, V::SitePotential) 
-   TL, uL = length_types(sys)
-   uE = energy_unit(V)
-   return zero(TL) * uE 
-end
-
-function zero_forces(sys::AbstractSystem{D}, V::SitePotential) where {D} 
-   TL, uL = length_types(sys)
-   return zeros(SVector{D, TL}, length(sys)) * energy_unit(V) / uL 
-end 
-
-function zero_virial(sys::AbstractSystem{D}, V::SitePotential) where {D}
-   TL, uL = length_types(sys)
-   return zero(SMatrix{D,D,TL}) * energy_unit(V)
-end
-
-function AtomsCalculators.promote_force_type(sys::AbstractSystem{D}, 
-                                          calc::SitePotential) where {D} 
-   TL, uL = length_types(sys)
-   TF = typeof(one(TL) * force_unit(calc))
-   return SVector{D, TF}
-end 
