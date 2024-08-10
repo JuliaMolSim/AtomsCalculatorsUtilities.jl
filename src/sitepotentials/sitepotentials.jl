@@ -14,7 +14,8 @@ import AtomsCalculators: potential_energy,
                          forces, 
                          virial, 
                          energy_forces, 
-                         energy_forces_virial
+                         energy_forces_virial, 
+                         force_unit 
 
 # the following functiona are used in the implementation: 
 import AtomsCalculators: zero_energy, zero_forces, zero_virial                         

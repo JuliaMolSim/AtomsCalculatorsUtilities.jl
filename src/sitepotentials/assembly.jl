@@ -21,39 +21,39 @@ function potential_energy(
                   executor = ThreadedEx(), 
                   nlist = PairList(sys, cutoff_radius(V)), 
                   kwargs...)
-
+   uE = energy_unit(V)
    E = Folds.sum( domain, executor; 
                   init = zero_energy(sys, V) 
    ) do i
       Js, Rs, Zs, z0 = get_neighbours(sys, V, nlist, i) 
-      e_i = eval_site(V, Rs, Zs, z0) * energy_unit(V)
+      e_i = eval_site(V, Rs, Zs, z0) * uE 
    end
 
    return E
 end
 
 
-@generate_interface function AtomsCalculators.virial(
+function virial(
                   sys, 
                   V::SitePotential; 
                   domain   = 1:length(sys), 
                   executor = ThreadedEx(),
                   nlist    = PairList(sys, cutoff_radius(V)),
                   kwargs...)
-
+   uE = energy_unit(V)
    vir = Folds.sum( domain, executor; 
                     init = zero_virial(sys, V) 
    ) do i 
       Js, Rs, Zs, z0 = get_neighbours(sys, V, nlist, i)
       Ei, ∇Ei = eval_grad_site(V, Rs, Zs, z0)
-      vir_i = site_virial(∇Ei, Rs) * energy_unit(V)
+      vir_i = site_virial(∇Ei, Rs) * uE
    end
 
    return vir
 end
 
 
-function AtomsCalculators.energy_forces_virial(
+function energy_forces_virial(
                   sys, 
                   V::SitePotential; 
                   domain   = 1:length(sys), 
@@ -61,7 +61,8 @@ function AtomsCalculators.energy_forces_virial(
                   ntasks   = Threads.nthreads(),
                   nlist    = PairList(sys, cutoff_radius(V)),
                   kwargs...)
-
+   uE = energy_unit(V)
+   fE = force_unit(V)
    E_F_V = Folds.sum( collect(chunks(domain, ntasks)), 
                       executor;
                       init=[ zero_energy(sys, V), 
