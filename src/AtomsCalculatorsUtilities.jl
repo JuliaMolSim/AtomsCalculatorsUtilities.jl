@@ -13,10 +13,14 @@ module Calculators
 end # module Calculators
 
 
-# generic utility codes for implementing site potentials 
+# generic utility codes for implementing site potentials =
 include("sitepotentials/sitepotentials.jl")
+
 # ... and pair potentials
 include("pairpotentials/pairpotentials.jl")
+module IPI
+    include("ipi/ipi_interface.jl")
+end
 
 module Testing 
     include("testing/fdtests.jl")

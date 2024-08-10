@@ -14,6 +14,7 @@ makedocs(;
     ),
     pages=[
         "Home" => "index.md",
+        "i-PI Driver" => "ipi.md"
     ],
 )
 
