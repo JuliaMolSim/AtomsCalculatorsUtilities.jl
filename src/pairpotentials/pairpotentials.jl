@@ -6,10 +6,11 @@ using DiffResults, ForwardDiff, StaticArrays, Unitful
 using LinearAlgebra: norm
 using AtomsBase: AbstractSystem 
 import AtomsCalculators
+import ForwardDiff: Dual
 
 import AtomsCalculatorsUtilities.SitePotentials: SitePotential, 
-                     eval_site, eval_grad_site, cutoff_radius, 
-                     energy_unit, length_unit
+                     eval_site, eval_grad_site
+                     #  , cutoff_radius, energy_unit, length_unit
 
 
 # NOTE: this could be taken a subtype of SitePotential, but not clear 
@@ -17,172 +18,97 @@ import AtomsCalculatorsUtilities.SitePotentials: SitePotential,
 #       performance by keeping it a separate implementation. 
 
 """
-`PairPotential`:abstractsupertype for pair potentials
+`PairPotential`:abstractsupertype for pair potentials. A concrete 
+type must implement the following methods: 
+- `eval_pair(V, r, [z1, z2, [ps, st]]) -> val`
+- `cutoff_radius(V) -> rcut`
+- `energy_unit(V) -> uE`
+- `length_unit(V) -> uL`
+
+There is a default implementation of `eval_grad_pair` that uses 
+ForwardDiff. Optionally this can be overloaded e.g. if the implementation 
+of `eval_pair` does not allow for Dual numbers. 
+
+AtomsCalculators uses the Lux interface is used manage parameterized potentials. 
 """
 abstract type PairPotential <: SitePotential end
 
+""" 
+    eval_pair(V, r, [z1, z2, [ps, st]]) -> val 
 
-struct SimplePairPotential{ID, TC, TE} <: PairPotential where {TC<:Unitful.LengthUnits, TE<:Unitful.EnergyUnits }
-   f::Function
-   atom_ids::NTuple{2,ID}
-   cutoff::TC
-   "zero used to define output type and unit"
-   zero_energy::TE  
+Evaluate a pair potential `V` acting between two particles of 
+species `z1` and `z2` at a distance `r`, with parameters `ps` and state `st`.
+""" 
+function eval_pair end 
+
+
+""" 
+    eval_grad_pair(V, r, [z1, z2, [ps, st]]) -> (val, deriv)
+
+Evaluate a pair potential `V` and it's derivative acting between two particles of 
+species `z1` and `z2` at a distance `r`, with parameters `ps` and state `st`.
+""" 
+function eval_grad_pair(V, r, args...) 
+    dr = Dual(r, 1)
+    dV = eval_pair(V, dr, args...)
+    return dV.value, dV.partials.values[1]
 end
 
 
-struct ParametricPairPotential{ID, TP, TC, TE} <: PairPotential where {TP<:AbstractArray, TC<:Unitful.LengthUnits, TE<:Unitful.EnergyUnits }
-   f::Function
-   parameters::TP
-   atom_ids::NTuple{2,ID}
-   cutoff::TC
-   "zero used to define output type and unit"
-   zero_energy::TE  
-end
+# ----------- Default implementation of a pair potential 
+#             as a simple site potential 
+# In the future with better neighbourlists this can surely 
+# be significantly improved upon. 
 
+function eval_site(V::PairPotential, Rs, Zs, z0, args...)
 
-# -------------------------------------------------------
-# generic interface functionality 
-
-# NOTE: all this needs to be cleaned up once the new 
-#       AtomsCalculators interface is in place. 
-
-
-cutoff_radius(pp::PairPotential) = pp.cutoff
-
-energy_unit(pp::PairPotential) = unit(pp.zero_energy)
-
-length_unit(pp::PairPotential) = unit(pp.cutoff)
-
-
-##
-
-
-
-function eval_site(spp::SimplePairPotential, Rs, Zs, z0)
-    TR = eltype(eltype(Rs))
-    if ! (z0 in spp.atom_ids)
-        return zero(TR) 
-    end
-    tmp = zero(TR)
-    id = z0 == spp.atom_ids[1] ?  spp.atom_ids[2] : spp.atom_ids[1]
-    for (i, R) in zip(Zs, Rs)
-        if i == id
-            r = norm(R)
-            tmp += spp.f(r)
-        end
-    end
-    return tmp/2 # divide by to to get correct double count
-end
-
-
-function eval_grad_site(spp::SimplePairPotential, Rs, Zs, z0)
-   TR = eltype(eltype(Rs))
     @assert length(Rs) == length(Zs)
-    f = zeros(SVector{3, TR}, length(Zs))
-    e_tmp = zero(TR)
-    if ! (z0 in spp.atom_ids)  # potential is not defined for this case
-        return e_tmp, f  # return zeros - this is not the optimal but will do for now
-    end
-    id = z0 == spp.atom_ids[1] ?  spp.atom_ids[2] : spp.atom_ids[1]
-    d_result = DiffResults.DiffResult(e_tmp, e_tmp)
-    for (i, Z, R) in zip(1:length(Zs), Zs, Rs)
-        if Z == id
-            r = norm(R)
-            d_result = ForwardDiff.derivative!(d_result, spp.f, r)
-            te::Float64 = DiffResults.value(d_result)  # type instablity here
-            e_tmp += te
-            tmp::Float64 =  DiffResults.derivative(d_result)  # type instablity here
-            f[i] = ( tmp / (2r) ) * R  # divide with two here to take off double count
-        end
-    end
-    return e_tmp/2, f
-end
 
-##
-
-
-
-function eval_site(ppp::ParametricPairPotential, Rs, Zs, z0)
-   TR = eltype(eltype(Rs))
-    if ! (z0 in ppp.atom_ids)
+    if length(Rs) > 0 
+        return sum( eval_pair(V, norm(𝐫), zj, z0, args...)
+                    for (𝐫, zj) in zip(Rs, Zs) ) / 2
+    else 
+        # the floating point type we assume for the potential
+        # if we can't infer it from eval_pair since Rs is empty...
+        TR = eltype(eltype(Rs))   
         return zero(TR)
-    end
-    tmp = zero(TR)
-    id = z0 == ppp.atom_ids[1] ?  ppp.atom_ids[2] : ppp.atom_ids[1]
-    for (i, R) in zip(Zs, Rs)
-        if i == id
-            r = norm(R)
-            tmp += ppp.f(r, ppp.parameters)
-        end
-    end
-    return tmp/2 # divide by to to get correct double count
+    end 
+
 end
 
 
-function eval_grad_site(ppp::ParametricPairPotential, Rs, Zs, z0)
+function eval_grad_site(V::PairPotential, Rs, Zs, z0, args...)
+
     @assert length(Rs) == length(Zs)
-    T = eltype(eltype(Rs))
-    f = zeros(SVector{3, T}, length(Zs))
-    e_tmp = ustrip(ppp.zero_energy)
-    if ! (z0 in ppp.atom_ids)  # potential is not defined for this case
-        return e_tmp, f  # return zeros - this is not the optimal but will do for now
+    TR = eltype(eltype(Rs)) 
+
+    # if the input is empty, return zeros and empty forces 
+    if length(Rs) == 0 
+        TF = eltype(Rs) 
+        return zero(TR), TF[] 
+    end 
+
+    # We can infer the actual types by evaluating the potential.
+    r1 = norm(Rs[1]) 
+    v, dv = eval_grad_pair(V, r1, Zs[1], z0, args...)
+    TE = typeof(v) 
+    TF = promote_type(TR, typeof(dv)) 
+
+    # allocate memory for the site gradient 
+    Ei = v / 2
+    ∇Ei = zeros(SVector{3, TF}, length(Rs))
+    ∇Ei[1] = (dv/2) * Rs[1] / r1
+
+    for j = 2:length(Rs) 
+        rj = norm(Rs[j])
+        v, dv = eval_grad_pair(V, rj, Zs[j], z0, args...)
+        Ei += v/2
+        ∇Ei[j] = (dv/2) * Rs[j] / rj
     end
-    id = z0 == ppp.atom_ids[1] ?  ppp.atom_ids[2] : ppp.atom_ids[1]
-    d_result = DiffResults.DiffResult(zero(T), zero(T))
-    for (i, Z, R) in zip(1:length(Zs), Zs, Rs)
-        if Z == id
-            r = norm(R)
-            d_result = ForwardDiff.derivative!(d_result, x->ppp.f(x, ppp.parameters), r)
-            te::T= DiffResults.value(d_result)  # type instablity here
-            e_tmp += te
-            tmp::T =  DiffResults.derivative(d_result)  # type instablity here
-            f[i] = ( tmp / (2r) ) * R  # divide with two here to take off double count
-        end
-    end
-    return e_tmp/2, f
+
+    return Ei, ∇Ei
 end
 
-
-# Parameter estimation ∂f/∂params
-function eval_site(ppp::ParametricPairPotential, params::AbstractArray, Rs, Zs, z0)
-    T = promote_type( (typeof ∘ ustrip ∘ zero)(ppp) , (eltype ∘ eltype)(Rs) )
-    tmp = zeros( T, length(params) )
-    if ! (z0 in ppp.atom_ids)
-        return tmp
-    end
-    id = z0 == ppp.atom_ids[1] ?  ppp.atom_ids[2] : ppp.atom_ids[1]
-    for (i, R) in zip(Zs, Rs)
-        if i == id
-            r = norm(R)
-            tmp += ForwardDiff.gradient( a -> ppp.f(r, a), params)
-        end
-    end
-    return tmp/2 # divide by to to get correct double count
-end
-
-
-function eval_grad_site(ppp::ParametricPairPotential, params::AbstractArray, Rs, Zs, z0)
-    @assert length(Rs) == length(Zs)
-    # Plan is to calculate ∂E/∂rᵢ∂pⱼ with Hessian calculation
-    # using [r, params...] as imput.
-    T = promote_type( (typeof ∘ ustrip ∘ zero)(ppp) , (eltype ∘ eltype)(Rs) )
-    m = SMatrix{length(Rs[1]), length(params)}(zeros(T, length(Rs[1]), length(params)))
-    f = fill( m, length(Zs) )
-    if ! (z0 in ppp.atom_ids)  # potential is not defined for this case
-        return f  # return zeros - this is not the optimal but will do for now
-    end
-    id = z0 == ppp.atom_ids[1] ?  ppp.atom_ids[2] : ppp.atom_ids[1]
-
-    for (i, Z, R) in zip(1:length(Zs), Zs, Rs)
-        if Z == id
-            r = norm(R)
-            hess = ForwardDiff.hessian( a -> ppp.f(a[1], a[2:end]), [r, params...] )
-            f[i] = [ ( tmp / (2r) ) * Rᵢ for Rᵢ in R, tmp in @view hess[2:end, 1] ]
-        end
-    end
-    return f
-end
 
 
 end # end module PairPotentials
