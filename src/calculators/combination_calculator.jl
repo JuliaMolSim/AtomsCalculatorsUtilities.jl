@@ -65,9 +65,14 @@ mutable struct CombinationCalculator{N, T} # Mutable struct so that calculators 
     keywords::Function
     function CombinationCalculator(calculators...; executor=SequentialEx(), keyword_generator=nothing)
         kgen = something(keyword_generator, generate_keywords)
+        Eunits = AtomsCalculators.energy_unit.(calculators)
+        @assert all( Eunits .== Eunits[1] ) "All calculators must have same energy unit"
+        Lunits = AtomsCalculators.length_unit.(calculators)
+        @assert all( Lunits .== Lunits[1] ) "All calculators must have same length unit"
         new{length(calculators), typeof(kgen)}(calculators, executor, kgen)
     end
 end
+
 
 function Base.show(io::IO, ::MIME"text/plain", calc::CombinationCalculator)
     print(io, "CombinationCalculator - ", length(calc) , " calculators")
@@ -79,6 +84,12 @@ Base.getindex(cc::CombinationCalculator, i) = cc.calculators[i]
 Base.lastindex(cc::CombinationCalculator) = length(cc)
 Base.firstindex(cc::CombinationCalculator) = 1
 
+AtomsCalculators.energy_unit(calc::CombinationCalculator) = 
+        AtomsCalculators.energy_unit(calc.calculators[1])
+
+AtomsCalculators.length_unit(calc::CombinationCalculator) = 
+        AtomsCalculators.length_unit(calc.calculators[1])
+        
 
 AtomsCalculators.@generate_interface function AtomsCalculators.potential_energy(sys, calc::CombinationCalculator; kwargs...)
     new_kwargs = calc.keywords(sys, calc.calculators...; kwargs...)
@@ -96,10 +107,10 @@ function AtomsCalculators.forces(sys, calc::CombinationCalculator; kwargs...)
     end
 end
 
-
+# TODO - note this is incorrect. We don't support the low-level interface yet 
 function AtomsCalculators.calculate( ::AtomsCalculators.Forces, sys, calc::CombinationCalculator; kwargs...)
     f = AtomsCalculators.forces(sys, calc; kwargs...)
-    return (; :forces => f)
+    return (; :forces => f, :state => nothing)
 end
 
 

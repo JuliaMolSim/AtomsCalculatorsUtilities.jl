@@ -1,6 +1,7 @@
 
 export ZeroVirialCalculator
 
+import AtomsCalculators: energy_unit 
 
 @doc """
     ZeroVirialCalculator{T,VU}
@@ -25,18 +26,20 @@ ZeroVirialCalculator(
 )
 ```
 """
-mutable struct ZeroVirialCalculator{T,VU}
-    calculator::T
-    virial_unit::VU
-    function ZeroVirialCalculator(calc; virial_unit::Unitful.EnergyUnits=u"eV")
+mutable struct ZeroVirialCalculator{TCALC}
+    calculator::TCALC
+    function ZeroVirialCalculator(calc)
         @warn "Setting virial to zeros leads to errors! Use on your own risk."
-        new{typeof(calc), typeof(virial_unit)}(calc, virial_unit)
+        new{typeof(calc)}(calc)
     end
 end
 
 
-AtomsCalculators.zero_forces(sys, calc::ZeroVirialCalculator) = AtomsCalculators.zero_forces(sys, calc.calculator)
-AtomsCalculators.promote_force_type(sys, calc::ZeroVirialCalculator) = AtomsCalculators.promote_force_type(sys, calc.calculator)
+AtomsCalculators.energy_unit(calc::ZeroVirialCalculator) = 
+        AtomsCalculators.energy_unit(calc.calculator) 
+
+AtomsCalculators.length_unit(calc::ZeroVirialCalculator) = 
+        AtomsCalculators.length_unit(calc.calculator) 
 
 
 function AtomsCalculators.potential_energy(sys, calc::ZeroVirialCalculator; kwargs...)
@@ -45,8 +48,8 @@ end
 
 
 AtomsCalculators.@generate_interface function AtomsCalculators.virial(sys, calc::ZeroVirialCalculator; kwargs...)
-    # Ideally this would be same as energy unit, but it is not possible to access it
-    return zeros(3,3) * u"eV"
+    D = AtomsBase.n_dimensions(sys) 
+    return zeros(D, D) * energy_unit(calc)
 end
 
 

@@ -2,7 +2,7 @@
 
 module PairPotentials
 
-using DiffResults, ForwardDiff, StaticArrays, Unitful
+using ForwardDiff, StaticArrays, Unitful
 using LinearAlgebra: norm
 using AtomsBase: AbstractSystem 
 import AtomsCalculators

@@ -10,6 +10,9 @@ using Unitful
 struct MyType
 end
 
+AtomsCalculators.energy_unit(::MyType) = u"eV"
+AtomsCalculators.length_unit(::MyType) = u"Å"
+
 AtomsCalculators.@generate_interface function AtomsCalculators.potential_energy(system, calculator::MyType; kwargs...)
     return 1.0u"eV" * length(system)
 end
@@ -30,11 +33,12 @@ hydrogen = isolated_system([
     :H => [4., 1., 0.]u"Å"
 ])
 
+
 @testset "SubSystemCalculator" begin
     
     sub_calc = SubSystemCalculator(MyType(), 1:2)
 
-    test_energy_forces_virial(hydrogen, sub_calc)
+    AtomsCalculators.Testing.test_energy_forces_virial(hydrogen, sub_calc)
 
     f = AtomsCalculators.zero_forces(hydrogen, sub_calc)
     f_zero = f[1]
@@ -53,11 +57,12 @@ hydrogen = isolated_system([
     @test v[1,1] == 2.0u"eV"
 end
 
+
 @testset "CombinationCalculator" begin
     
     co_calc = CombinationCalculator(MyType(), MyType())
 
-    test_energy_forces_virial(hydrogen, co_calc)
+    AtomsCalculators.Testing.test_energy_forces_virial(hydrogen, co_calc)
     
     e = AtomsCalculators.potential_energy(hydrogen, co_calc)
     f = AtomsCalculators.forces(hydrogen, co_calc)
@@ -75,12 +80,12 @@ end
     v = AtomsCalculators.calculate(AtomsCalculators.Virial(), hydrogen, rcalc)
     @test v == fetch(rcalc)
     @test v == take!(rcalc)
-    test_energy_forces_virial(hydrogen, rcalc)
+    AtomsCalculators.Testing.test_energy_forces_virial(hydrogen, rcalc)
 end
 
 @testset "ZeroVirialCalculator" begin
     zvcalc = ZeroVirialCalculator(MyType())
     v = AtomsCalculators.virial(hydrogen, zvcalc)
     @test all(iszero, v)
-    test_energy_forces_virial(hydrogen, zvcalc)
+    AtomsCalculators.Testing.test_energy_forces_virial(hydrogen, zvcalc)
 end

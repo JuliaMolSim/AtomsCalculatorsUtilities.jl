@@ -26,8 +26,8 @@ module DemoPairCalc
    uL = u"Å"
    uL_sys = u"Å"
 
-   energy_unit(::Pot) = uE
-   length_unit(::Pot) = uL
+   energy_unit(::AbstractPot) = uE
+   length_unit(::AbstractPot) = uL
 
 
    _v(r) = exp( - sum(abs2, r) )
