@@ -68,12 +68,7 @@ AtomsCalculators.promote_force_type(sys::AtomsBase.AbstractSystem, calc::Reporti
 
 AtomsCalculators.energy_unit(calc::ReportingCalculator) = AtomsCalculators.energy_unit(calc.calculator)
 AtomsCalculators.length_unit(calc::ReportingCalculator) = AtomsCalculators.length_unit(calc.calculator)
-
-AtomsCalculators.energy_unit(calc::ReportingCalculator) = 
-            AtomsCalculators.energy_unit(calc.calculator)
-
-AtomsCalculators.length_unit(calc::ReportingCalculator) =
-            AtomsCalculators.length_unit(calc.calculator)               
+          
 
 function AtomsCalculators.potential_energy(
     sys, 
