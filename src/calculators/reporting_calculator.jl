@@ -62,7 +62,7 @@ end
 Base.fetch(rcalc::ReportingCalculator) = fetch(rcalc.channel)
 Base.take!(rcalc::ReportingCalculator) = take!(rcalc.channel)
 
-#AtomsCalculators.zero_forces(sys, calc::ReportingCalculator) = AtomsCalculators.zero_forces(sys, calc.calculator)
+AtomsCalculators.zero_forces(sys, calc::ReportingCalculator) = AtomsCalculators.zero_forces(sys, calc.calculator)
 AtomsCalculators.promote_force_type(sys::AtomsBase.AbstractSystem, calc::ReportingCalculator) = AtomsCalculators.promote_force_type(sys, calc.calculator)
 
 AtomsCalculators.energy_unit(calc::ReportingCalculator) = AtomsCalculators.energy_unit(calc.calculator)
@@ -173,4 +173,20 @@ function AtomsCalculators.energy_forces_virial(
         put!(calc.channel, mess)
     end
     return efv
+end
+
+
+## Low-level interface specials
+
+AtomsCalculators.get_state(rcalc::ReportingCalculator) = AtomsCalculators.get_state(rcalc.calculator)
+AtomsCalculators.get_parameters(rcalc::ReportingCalculator) = AtomsCalculators.get_parameters(rcalc.calculator)
+
+function AtomsCalculators.set_state!(rcalc::ReportingCalculator, st)
+    tmp = AtomsCalculators.set_state!(rcalc.calculator, st)
+    return ReportingCalculator(tmp, rcalc.channel; message_function=rcalc.message)
+end
+
+function AtomsCalculators.set_parameters!(rcalc::ReportingCalculator, ps) 
+    tmp = AtomsCalculators.set_parameters!(rcalc.calculator, ps)
+    return ReportingCalculator(tmp, rcalc.channel; message_function=rcalc.message)
 end

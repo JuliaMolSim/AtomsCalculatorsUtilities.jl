@@ -55,6 +55,13 @@ hydrogen = isolated_system([
 
     v = AtomsCalculators.virial(hydrogen, sub_calc)
     @test v[1,1] == 2.0u"eV"
+
+    st = AtomsCalculators.get_state(sub_calc)
+    ps = AtomsCalculators.get_parameters(sub_calc)
+    nscalc = AtomsCalculators.set_state!(sub_calc, st)
+    AtomsCalculators.Testing.test_potential_energy(hydrogen, nscalc)
+    nscalc = AtomsCalculators.set_parameters!(sub_calc, ps)
+    AtomsCalculators.Testing.test_potential_energy(hydrogen, nscalc)
 end
 
 
@@ -73,6 +80,13 @@ end
     @test e ≈ e_ref
     @test all( f .≈ f_ref )
     @test all( v .≈ v_ref )
+
+    st = AtomsCalculators.get_state(co_calc)
+    ps = AtomsCalculators.get_parameters(co_calc)
+    nccalc = AtomsCalculators.set_state!(co_calc, st)
+    AtomsCalculators.Testing.test_potential_energy(hydrogen, nccalc)
+    nscalc = AtomsCalculators.set_parameters!(co_calc, ps)
+    AtomsCalculators.Testing.test_potential_energy(hydrogen, nccalc)
 end
 
 @testset "ReportingCalculator" begin
@@ -81,6 +95,13 @@ end
     @test v == fetch(rcalc)
     @test v == take!(rcalc)
     AtomsCalculators.Testing.test_energy_forces_virial(hydrogen, rcalc)
+
+    st = AtomsCalculators.get_state(rcalc)
+    ps = AtomsCalculators.get_parameters(rcalc)
+    nrcalc = AtomsCalculators.set_state!(rcalc, st)
+    AtomsCalculators.Testing.test_potential_energy(hydrogen, nrcalc)
+    nrcalc = AtomsCalculators.set_parameters!(rcalc, ps)
+    AtomsCalculators.Testing.test_potential_energy(hydrogen, nrcalc)
 end
 
 @testset "ZeroVirialCalculator" begin
@@ -88,4 +109,11 @@ end
     v = AtomsCalculators.virial(hydrogen, zvcalc)
     @test all(iszero, v)
     AtomsCalculators.Testing.test_energy_forces_virial(hydrogen, zvcalc)
+
+    st = AtomsCalculators.get_state(zvcalc)
+    ps = AtomsCalculators.get_parameters(zvcalc)
+    nzcalc = AtomsCalculators.set_state!(zvcalc, st)
+    AtomsCalculators.Testing.test_potential_energy(hydrogen, nzcalc)
+    nzcalc = AtomsCalculators.set_parameters!(zvcalc, ps)
+    AtomsCalculators.Testing.test_potential_energy(hydrogen, nzcalc)
 end

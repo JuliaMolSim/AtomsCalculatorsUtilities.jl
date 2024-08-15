@@ -35,7 +35,7 @@ mutable struct ZeroVirialCalculator{TCALC}
 end
 
 
-#AtomsCalculators.zero_forces(sys, calc::ZeroVirialCalculator) = AtomsCalculators.zero_forces(sys, calc.calculator)
+AtomsCalculators.zero_forces(sys, calc::ZeroVirialCalculator) = AtomsCalculators.zero_forces(sys, calc.calculator)
 AtomsCalculators.promote_force_type(sys::AtomsBase.AbstractSystem, calc::ZeroVirialCalculator) = AtomsCalculators.promote_force_type(sys, calc.calculator)
 
 AtomsCalculators.energy_unit(calc::ZeroVirialCalculator) = AtomsCalculators.energy_unit(calc.calculator)
@@ -85,4 +85,20 @@ function AtomsCalculators.calculate(
     kwargs...
 )
     return AtomsCalculators.calculate(e, sys, calc.calculator; kwargs...)
+end
+
+
+## Low-level interface specials
+
+AtomsCalculators.get_state(zcalc::ZeroVirialCalculator) = AtomsCalculators.get_state(zcalc.calculator)
+AtomsCalculators.get_parameters(zcalc::ZeroVirialCalculator) = AtomsCalculators.get_parameters(zcalc.calculator)
+
+function AtomsCalculators.set_state!(zcalc::ZeroVirialCalculator, st)
+    tmp = AtomsCalculators.set_state!(zcalc.calculator, st)
+    return ZeroVirialCalculator(tmp)
+end
+
+function AtomsCalculators.set_parameters!(zcalc::ZeroVirialCalculator, ps) 
+    tmp = AtomsCalculators.set_parameters!(zcalc.calculator, ps)
+    return ZeroVirialCalculator(tmp)
 end

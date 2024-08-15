@@ -62,7 +62,7 @@ CombinationCalculator( calc1, calc2, ...; executor=SequentialEx())
 mutable struct CombinationCalculator{N,T,TE,TL} # Mutable struct so that calculators can mutate themself
     calculators::NTuple{N,Any}
     executor::Any
-    keywords::Function
+    keywords::T
     energy_unit::TE
     length_unit::TL
     function CombinationCalculator(
@@ -248,4 +248,44 @@ function AtomsCalculators.energy_forces_virial(sys, calc::CombinationCalculator;
     tmp[2] = fz
     tmp[3] = uconvert.(calc.energy_unit, tmp[3])
     return (energy=tmp[1], forces=tmp[2], virial=tmp[3])
+end
+
+
+
+
+## Low-level interface specials
+
+function AtomsCalculators.get_state(ccalc::CombinationCalculator)
+    return Tuple( AtomsCalculators.get_state(calc) for calc in ccalc.calculators  )
+end
+
+function AtomsCalculators.get_parameters(ccalc::CombinationCalculator)
+    return Tuple( AtomsCalculators.get_parameters(calc) for calc in ccalc.calculators  )
+end
+
+function AtomsCalculators.set_state!(ccalc::CombinationCalculator, states)
+    tmp = map( zip(ccalc.calculators, states) ) do (calc, st)
+        AtomsCalculators.set_state!(calc, st)
+    end
+    return CombinationCalculator(
+        tmp...;
+        executor=ccalc.executor, 
+        keyword_generator=ccalc.keywords,
+        energy_unit=ccalc.energy_unit,
+        length_unit=ccalc.length_unit
+    )
+end
+
+
+function AtomsCalculators.set_parameters!(ccalc::CombinationCalculator, parameters)
+    tmp = map( zip(ccalc.calculators, parameters) ) do (calc, ps)
+        AtomsCalculators.set_parameters!(calc, ps)
+    end
+    return CombinationCalculator(
+        tmp...;
+        executor=ccalc.executor, 
+        keyword_generator=ccalc.keywords,
+        energy_unit=ccalc.energy_unit,
+        length_unit=ccalc.length_unit
+    )
 end
