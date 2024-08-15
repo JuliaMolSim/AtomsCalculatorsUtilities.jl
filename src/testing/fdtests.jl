@@ -4,7 +4,8 @@ using Printf, StaticArrays, Unitful, AtomsBase
 using LinearAlgebra: norm 
 using AtomsBase: AbstractSystem, FastSystem, position, 
                  FlexibleSystem
-using AtomsCalculators: potential_energy, forces, virial 
+using AtomsCalculators: potential_energy, forces, virial, 
+                       energy_unit, length_unit, force_unit 
 
 _ustripvecvec(A::AbstractVector{<: AbstractArray}) = [ustrip.(a) for a in A] 
 
@@ -98,8 +99,8 @@ end
 function _fdtest_forces(sys::AbstractSystem, calc, verbose, rattle, h0; kwargs...) 
    X0, bb0 = _rattle(position(sys), bounding_box(sys), rattle)
 
-   # uE = energy_unit(calc)  <= TODO: replace with this 
-   uE = unit(potential_energy(sys, calc))
+   uE = energy_unit(calc)
+   uL = length_unit(calc)
    uL_sys = unit(position(sys, 1)[1]) 
    @assert unit(h0) == uL_sys
    @assert unit(X0[1][1]) == uL_sys
