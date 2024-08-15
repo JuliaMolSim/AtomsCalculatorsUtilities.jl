@@ -62,12 +62,18 @@ end
 Base.fetch(rcalc::ReportingCalculator) = fetch(rcalc.channel)
 Base.take!(rcalc::ReportingCalculator) = take!(rcalc.channel)
 
+
 AtomsCalculators.zero_forces(sys, calc::ReportingCalculator) = AtomsCalculators.zero_forces(sys, calc.calculator)
 AtomsCalculators.promote_force_type(sys::AtomsBase.AbstractSystem, calc::ReportingCalculator) = AtomsCalculators.promote_force_type(sys, calc.calculator)
 
 AtomsCalculators.energy_unit(calc::ReportingCalculator) = AtomsCalculators.energy_unit(calc.calculator)
 AtomsCalculators.length_unit(calc::ReportingCalculator) = AtomsCalculators.length_unit(calc.calculator)
 
+AtomsCalculators.energy_unit(calc::ReportingCalculator) = 
+            AtomsCalculators.energy_unit(calc.calculator)
+
+AtomsCalculators.length_unit(calc::ReportingCalculator) =
+            AtomsCalculators.length_unit(calc.calculator)               
 
 function AtomsCalculators.potential_energy(
     sys, 

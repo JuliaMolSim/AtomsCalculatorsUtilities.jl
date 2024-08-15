@@ -30,12 +30,12 @@ function Base.show(io::IO, ::MIME"text/plain", calc::SubSystemCalculator)
     print(io, "SubSystemCalculator - subsystem size = ", length(calc.subsys))
 end
 
+
 AtomsCalculators.zero_forces(sys, calc::SubSystemCalculator) = AtomsCalculators.zero_forces(sys, calc.calculator)
 AtomsCalculators.promote_force_type(sys::AtomsBase.AbstractSystem, calc::SubSystemCalculator) = AtomsCalculators.promote_force_type(sys, calc.calculator)
 
 AtomsCalculators.energy_unit(calc::SubSystemCalculator) = AtomsCalculators.energy_unit(calc.calculator)
 AtomsCalculators.length_unit(calc::SubSystemCalculator) = AtomsCalculators.length_unit(calc.calculator)
-
 
 function _generate_subsys(sys, calc::SubSystemCalculator)
     @assert length(sys) >= length(calc.subsys)
