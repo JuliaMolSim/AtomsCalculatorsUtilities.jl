@@ -8,9 +8,8 @@ ACT = AtomsCalculatorsUtilities.Testing
 
 module DemoPairCalc
    using AtomsCalculators, AtomsBase, ForwardDiff, Unitful, StaticArrays
-   using AtomsCalculators: @generate_interface 
    using LinearAlgebra: norm 
-   import AtomsCalculators: energy_forces_virial, 
+   import AtomsCalculators: energy_unit, length_unit, 
                             potential_energy, forces, virial 
 
    _ustripvecvec(A::AbstractVector{<: AbstractArray}) = [ustrip.(a) for a in A] 
@@ -26,6 +25,9 @@ module DemoPairCalc
    uE = u"eV" 
    uL = u"Å"
    uL_sys = u"Å"
+
+   energy_unit(::AbstractPot) = uE
+   length_unit(::AbstractPot) = uL
 
 
    _v(r) = exp( - sum(abs2, r) )
@@ -58,9 +60,7 @@ module DemoPairCalc
       end
       return vir 
    end
-   
 
-   # @generate_interface  ... not working as expected 
    potential_energy(sys, calc::AbstractPot; kwargs...) = 
         _energy(_ustripvecvec(position(sys))) * uE 
 
