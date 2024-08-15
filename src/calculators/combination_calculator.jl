@@ -94,9 +94,6 @@ Base.getindex(cc::CombinationCalculator, i) = cc.calculators[i]
 Base.lastindex(cc::CombinationCalculator) = length(cc)
 Base.firstindex(cc::CombinationCalculator) = 1
 
-AtomsCalculators.energy_unit(calc::CombinationCalculator) = 
-        AtomsCalculators.energy_unit(calc.calculators[1])
-
 AtomsCalculators.energy_unit(cc::CombinationCalculator) = cc.energy_unit
 AtomsCalculators.length_unit(cc::CombinationCalculator) = cc.length_unit
 
