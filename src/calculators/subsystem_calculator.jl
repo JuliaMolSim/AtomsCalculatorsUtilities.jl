@@ -30,11 +30,12 @@ function Base.show(io::IO, ::MIME"text/plain", calc::SubSystemCalculator)
     print(io, "SubSystemCalculator - subsystem size = ", length(calc.subsys))
 end
 
-AtomsCalculators.energy_unit(calc::SubSystemCalculator) = 
-                            AtomsCalculators.energy_unit(calc.calculator)
 
-AtomsCalculators.length_unit(calc::SubSystemCalculator) = 
-                            AtomsCalculators.length_unit(calc.calculator)
+AtomsCalculators.zero_forces(sys, calc::SubSystemCalculator) = AtomsCalculators.zero_forces(sys, calc.calculator)
+AtomsCalculators.promote_force_type(sys::AtomsBase.AbstractSystem, calc::SubSystemCalculator) = AtomsCalculators.promote_force_type(sys, calc.calculator)
+
+AtomsCalculators.energy_unit(calc::SubSystemCalculator) = AtomsCalculators.energy_unit(calc.calculator)
+AtomsCalculators.length_unit(calc::SubSystemCalculator) = AtomsCalculators.length_unit(calc.calculator)
 
 function _generate_subsys(sys, calc::SubSystemCalculator)
     @assert length(sys) >= length(calc.subsys)
@@ -91,4 +92,19 @@ function AtomsCalculators.energy_forces_virial(sys, calc::SubSystemCalculator; k
         f[i] += val
     end
     return (energy=tmp_efv.energy, forces=f, virial=tmp_efv.virial)
+end
+
+## Low-level interface specials
+
+AtomsCalculators.get_state(scalc::SubSystemCalculator) = AtomsCalculators.get_state(scalc.calculator)
+AtomsCalculators.get_parameters(scalc::SubSystemCalculator) = AtomsCalculators.get_parameters(scalc.calculator)
+
+function AtomsCalculators.set_state!(scalc::SubSystemCalculator, st)
+    tmp = AtomsCalculators.set_state!(scalc.calculator, st)
+    return SubSystemCalculator(tmp, scalc.subsys)
+end
+
+function AtomsCalculators.set_parameters!(scalc::SubSystemCalculator, ps) 
+    tmp = AtomsCalculators.set_parameters!(scalc.calculator, ps)
+    return SubSystemCalculator(tmp, scalc.subsys)
 end

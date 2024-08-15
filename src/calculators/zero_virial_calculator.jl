@@ -35,11 +35,11 @@ mutable struct ZeroVirialCalculator{TCALC}
 end
 
 
-AtomsCalculators.energy_unit(calc::ZeroVirialCalculator) = 
-        AtomsCalculators.energy_unit(calc.calculator) 
+AtomsCalculators.zero_forces(sys, calc::ZeroVirialCalculator) = AtomsCalculators.zero_forces(sys, calc.calculator)
+AtomsCalculators.promote_force_type(sys::AtomsBase.AbstractSystem, calc::ZeroVirialCalculator) = AtomsCalculators.promote_force_type(sys, calc.calculator)
 
-AtomsCalculators.length_unit(calc::ZeroVirialCalculator) = 
-        AtomsCalculators.length_unit(calc.calculator) 
+AtomsCalculators.energy_unit(calc::ZeroVirialCalculator) = AtomsCalculators.energy_unit(calc.calculator)
+AtomsCalculators.length_unit(calc::ZeroVirialCalculator) = AtomsCalculators.length_unit(calc.calculator)
 
 
 function AtomsCalculators.potential_energy(sys, calc::ZeroVirialCalculator; kwargs...)
@@ -65,10 +65,40 @@ function AtomsCalculators.forces!(f, sys, calc::ZeroVirialCalculator; kwargs...)
     return AtomsCalculators.forces!(f, sys, calc.calculator; kwargs...)
 end
 
-function AtomsCalculators.calculate(f::AtomsCalculators.Forces, sys, calc::ZeroVirialCalculator; kwargs...)
-    return AtomsCalculators.calculate(f, sys, calc.calculator; kwargs...)
+function AtomsCalculators.calculate(
+    f::AtomsCalculators.Forces, 
+    sys, 
+    calc::ZeroVirialCalculator,
+    pr=nothing,
+    st=nothing; 
+    kwargs...
+)
+    return AtomsCalculators.calculate(f, sys, calc.calculator, pr, st; kwargs...)
 end
 
-function AtomsCalculators.calculate(e::AtomsCalculators.Energy, sys, calc::ZeroVirialCalculator; kwargs...)
+function AtomsCalculators.calculate(
+    e::AtomsCalculators.Energy, 
+    sys, 
+    calc::ZeroVirialCalculator,
+    pr=nothing,
+    st=nothing; 
+    kwargs...
+)
     return AtomsCalculators.calculate(e, sys, calc.calculator; kwargs...)
+end
+
+
+## Low-level interface specials
+
+AtomsCalculators.get_state(zcalc::ZeroVirialCalculator) = AtomsCalculators.get_state(zcalc.calculator)
+AtomsCalculators.get_parameters(zcalc::ZeroVirialCalculator) = AtomsCalculators.get_parameters(zcalc.calculator)
+
+function AtomsCalculators.set_state!(zcalc::ZeroVirialCalculator, st)
+    tmp = AtomsCalculators.set_state!(zcalc.calculator, st)
+    return ZeroVirialCalculator(tmp)
+end
+
+function AtomsCalculators.set_parameters!(zcalc::ZeroVirialCalculator, ps) 
+    tmp = AtomsCalculators.set_parameters!(zcalc.calculator, ps)
+    return ZeroVirialCalculator(tmp)
 end

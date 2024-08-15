@@ -63,11 +63,12 @@ Base.fetch(rcalc::ReportingCalculator) = fetch(rcalc.channel)
 Base.take!(rcalc::ReportingCalculator) = take!(rcalc.channel)
 
 
-AtomsCalculators.energy_unit(calc::ReportingCalculator) = 
-            AtomsCalculators.energy_unit(calc.calculator)
+AtomsCalculators.zero_forces(sys, calc::ReportingCalculator) = AtomsCalculators.zero_forces(sys, calc.calculator)
+AtomsCalculators.promote_force_type(sys::AtomsBase.AbstractSystem, calc::ReportingCalculator) = AtomsCalculators.promote_force_type(sys, calc.calculator)
 
-AtomsCalculators.length_unit(calc::ReportingCalculator) =
-            AtomsCalculators.length_unit(calc.calculator)               
+AtomsCalculators.energy_unit(calc::ReportingCalculator) = AtomsCalculators.energy_unit(calc.calculator)
+AtomsCalculators.length_unit(calc::ReportingCalculator) = AtomsCalculators.length_unit(calc.calculator)
+          
 
 function AtomsCalculators.potential_energy(
     sys, 
@@ -133,10 +134,12 @@ function AtomsCalculators.calculate(
         AtomsCalculators.Virial
     },
     sys, 
-    calc::ReportingCalculator; 
+    calc::ReportingCalculator,
+    pr=nothing,
+    st=nothing; 
     kwargs...
 )
-    tmp = AtomsCalculators.calculate(calc_method, sys, calc.calculator; kwargs...)
+    tmp = AtomsCalculators.calculate(calc_method, sys, calc.calculator, pr, st; kwargs...)
     mess = calc.message(sys, calc.calculator, tmp; kwargs...)
     if ! isnothing(mess)
         put!(calc.channel, mess)
@@ -171,4 +174,20 @@ function AtomsCalculators.energy_forces_virial(
         put!(calc.channel, mess)
     end
     return efv
+end
+
+
+## Low-level interface specials
+
+AtomsCalculators.get_state(rcalc::ReportingCalculator) = AtomsCalculators.get_state(rcalc.calculator)
+AtomsCalculators.get_parameters(rcalc::ReportingCalculator) = AtomsCalculators.get_parameters(rcalc.calculator)
+
+function AtomsCalculators.set_state!(rcalc::ReportingCalculator, st)
+    tmp = AtomsCalculators.set_state!(rcalc.calculator, st)
+    return ReportingCalculator(tmp, rcalc.channel; message_function=rcalc.message)
+end
+
+function AtomsCalculators.set_parameters!(rcalc::ReportingCalculator, ps) 
+    tmp = AtomsCalculators.set_parameters!(rcalc.calculator, ps)
+    return ReportingCalculator(tmp, rcalc.channel; message_function=rcalc.message)
 end

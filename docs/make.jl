@@ -5,8 +5,9 @@ DocMeta.setdocmeta!(AtomsCalculatorsUtilities, :DocTestSetup, :(using AtomsCalcu
 
 makedocs(;
     modules=[AtomsCalculatorsUtilities],
-    authors="Teemu Järvinen <teemu.j.jarvinen@gmail.com> and contributors",
+    authors="JuliaMolSim contributors",
     sitename="AtomsCalculatorsUtilities.jl",
+    checkdocs=:exports,
     format=Documenter.HTML(;
         canonical="https://tjjarvinen.github.io/AtomsCalculatorsUtilities.jl",
         edit_link="main",

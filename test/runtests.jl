@@ -1,7 +1,7 @@
 using AtomsCalculatorsUtilities.Calculators
 using AtomsBase
 using AtomsCalculators
-using AtomsCalculators.AtomsCalculatorsTesting
+using AtomsCalculators.Testing
 using StaticArrays
 using Test
 using Unitful
