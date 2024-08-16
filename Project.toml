@@ -1,6 +1,6 @@
 name = "AtomsCalculatorsUtilities"
 uuid = "9855a07e-8816-4d1b-ac92-859c17475477"
-authors = ["Teemu Järvinen <teemu.j.jarvinen@gmail.com> and contributors"]
+authors = ["Julia MolSim contributors"]
 version = "0.1.0-DEV"
 
 [deps]
@@ -23,7 +23,7 @@ UnitfulAtomic = "a7773ee8-282e-5fa2-be4e-bd808c38a91a"
 [compat]
 AtomsBase = "0.3"
 AtomsCalculators = "0.2"
-Bumper = "0.6"
+Bumper = "0.6, 0.7"
 ChunkSplitters = "2"
 Folds = "0.2.10"
 ForwardDiff = "0.10"
