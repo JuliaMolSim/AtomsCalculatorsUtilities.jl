@@ -1,8 +1,15 @@
 
 module SitePotentials 
 
-using AtomsBase, AtomsCalculators, ChunkSplitters, Folds, NeighbourLists, 
-      Unitful, Bumper, StrideArrays 
+using AtomsBase
+using AtomsBase: AbstractSystem
+using AtomsCalculators
+using ChunkSplitters
+using Folds
+using NeighbourLists
+using Unitful
+using Bumper
+using StrideArrays 
 
 using StaticArrays: SVector, SMatrix 
 
