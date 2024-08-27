@@ -101,7 +101,7 @@ function run_driver(address, calc, init_structure; port=31415, unixsocket=false 
     else
         comm = connect(address, port)
     end
-    has_init = false
+    has_init = true  # we have init structure as an input
     has_data = false
     data = nothing
 
