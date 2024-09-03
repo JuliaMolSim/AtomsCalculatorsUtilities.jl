@@ -7,6 +7,8 @@ using AtomsBase: AbstractSystem, FastSystem, position,
 using AtomsCalculators: potential_energy, forces, virial, 
                        energy_unit, length_unit, force_unit 
 
+isinfinite(sys::AbstractSystem) = all( periodicity(sys) .== false )
+
 _ustripvecvec(A::AbstractVector{<: AbstractArray}) = [ustrip.(a) for a in A] 
 
 """
@@ -92,12 +94,12 @@ function _rattle(X, bb, r)
       ui = randn(TX); ui /= norm(ui)
       bb1[i] += (rand() * r) * ui
    end
-   return X1, bb1
+   return [ SVector(x...) for x in X1], tuple(bb1...)
 end
 
 
 function _fdtest_forces(sys::AbstractSystem, calc, verbose, rattle, h0; kwargs...) 
-   X0, bb0 = _rattle(position(sys), bounding_box(sys), rattle)
+   X0, bb0 = _rattle(position(sys, :), bounding_box(sys), rattle)
 
    uE = energy_unit(calc)
    uL = length_unit(calc)
@@ -110,11 +112,10 @@ function _fdtest_forces(sys::AbstractSystem, calc, verbose, rattle, h0; kwargs..
 
    # the input here is unit-less ... 
    _at(X) = FastSystem(bb0, 
-                       boundary_conditions(sys), 
+                       periodicity(sys), 
                        X * uL_sys,   # ... so we convert to system units 
-                       atomic_symbol(sys), 
-                       atomic_number(sys), 
-                       atomic_mass(sys))
+                       species(sys, :), 
+                       mass(sys, :), )
 
    # we are stripping uE from F and uF = uE/uL from dF, but 
    # after first converting dF into uE/uL units which is what 
@@ -130,7 +131,7 @@ end
 
 
 function _fdtest_virial(sys::AbstractSystem, calc, verbose, rattle, h0; kwargs...)
-   X0, C0 = _rattle(position(sys), bounding_box(sys), rattle)
+   X0, C0 = _rattle(position(sys, :), bounding_box(sys), rattle)
 
    # reference deformation is just the identity. Note, this is NOT a 
    # matrix of cell vectors, but a deformation of cell vectors, i.e. unitless!
@@ -141,15 +142,14 @@ function _fdtest_virial(sys::AbstractSystem, calc, verbose, rattle, h0; kwargs..
    # this implements a system where cell and positions are deformed according 
    # to the deformation matrix F obtained from the vector fvec 
    function _atv(fvec) 
-      F = reshape(fvec, (3,3))
+      F = SMatrix{3, 3}(reshape(fvec, (3,3)))
       bb = Ref(F) .* C0 # transform the cell 
       X = Ref(F) .* X0 # transform the positions
       return FastSystem(bb, 
-                        boundary_conditions(sys), 
+                        periodicity(sys), 
                         X, 
-                        atomic_symbol(sys), 
-                        atomic_number(sys), 
-                        atomic_mass(sys))
+                        species(sys, :), 
+                        mass(sys, :))
    end
 
    # note this strips energy units from both. 
