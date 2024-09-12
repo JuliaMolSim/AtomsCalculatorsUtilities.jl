@@ -173,7 +173,7 @@ function PairPotentials.eval_pair(V::SimplePairPotential, r, z1, z2)
     if V.atom_species == (z1, z2) || V.atom_species == (z2, z1)
         return V.f(r)
     else
-        return 0.0
+        return zero(r)
     end
 end
 
