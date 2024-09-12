@@ -8,9 +8,12 @@ using AtomsBase: AbstractSystem
 import AtomsCalculators
 import ForwardDiff: Dual
 
+import AtomsCalculatorsUtilities.SitePotentials
 import AtomsCalculatorsUtilities.SitePotentials: SitePotential, 
                      eval_site, eval_grad_site
                      #  , cutoff_radius, energy_unit, length_unit
+
+export SimplePairPotential
 
 
 # NOTE: this could be taken a subtype of SitePotential, but not clear 
@@ -109,6 +112,70 @@ function eval_grad_site(V::PairPotential, Rs, Zs, z0, args...)
     return Ei, ∇Ei
 end
 
+
+
+## Simple Pairpotential implementation
+
+
+"""
+    SimplePairPotential{TF, TS, UE, UL} <: PairPotential
+
+Create simple analytical pair potential.
+
+To create a new potential you need to supply
+
+- scalar to scalar function for pair energy
+- two identities for atoms to for a pair (currently atomic numbers)
+- cutoff radius
+
+You can also give keywords for energy and length units that the resulting
+energy, forces and virial have. Defaults to eV and Å.
+
+# Fields
+- `f::TF`                      : function that takes distance and returns energy
+- `atom_species::Tuple{TS,TS}` : pair of atom species among which the potential has valid
+- `rcut::Float64`              : cutoff radius that has unit `UL` 
+
+# Example
+```julia
+V = SimplePairPotential(
+    r -> -1/r^6
+    1,          # hydrogen
+    2,          # helium
+    6.0u"Å";
+    energy_unit=u"eV",
+    length_unit=u"Å"
+)
+```
+"""
+struct SimplePairPotential{TF, TS, UE, UL} <: PairPotential
+    f::TF
+    atom_species::Tuple{TS,TS}
+    rcut::Float64
+    function SimplePairPotential(
+        f, 
+        z1::TS, 
+        z2::TS, 
+        rcut::Unitful.Length; 
+        energy_unit::Unitful.EnergyUnits=u"eV", 
+        length_unit::Unitful.LengthUnits=u"Å"
+    )   where {TS}
+        new{typeof(f), TS, energy_unit, length_unit}(f, (z1,z2), ustrip(length_unit,rcut))
+    end
+end
+
+AtomsCalculators.energy_unit(::SimplePairPotential{TF,TI,UE,UL}) where{TF,TI,UE,UL} = UE
+AtomsCalculators.length_unit(::SimplePairPotential{TF,TI,UE,UL}) where{TF,TI,UE,UL} = UL
+SitePotentials.cutoff_radius(V::SimplePairPotential) = V.rcut * AtomsCalculators.length_unit(V)
+
+
+function PairPotentials.eval_pair(V::SimplePairPotential, r, z1, z2)
+    if V.atom_species == (z1, z2) || V.atom_species == (z2, z1)
+        return V.f(r)
+    else
+        return 0.0
+    end
+end
 
 
 end # end module PairPotentials
