@@ -14,6 +14,7 @@ Modules = [
     AtomsCalculatorsUtilities,
     AtomsCalculatorsUtilities.Calculators,
     AtomsCalculatorsUtilities.IPI,
+    AtomsCalculatorsUtilities.PairPotentials,
     AtomsCalculatorsUtilities.Testing
 ]
 ```
