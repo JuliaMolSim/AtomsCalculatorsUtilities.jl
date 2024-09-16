@@ -11,7 +11,9 @@ using UnitfulAtomic
 export run_driver
 
 const hdrlen = 12
-const pos_type = typeof(SVector(1., 1., 1.)u"bohr") #should be bohr
+const pos_type      = typeof( zero( SVector{3, Float64} ) * u"bohr" ) 
+const force_el_type = typeof( zero( SVector{3, Float64} ) * u"hartree/bohr" )
+const virial_type   = typeof( zero( SMatrix{3, 3, Float64} ) * u"hartree" )
 
 function sendmsg(comm, message; nbytes=hdrlen)
     @info "Sending message" message
@@ -51,6 +53,15 @@ function recvinit(comm)
     )
 end
 
+function send_init(comm)
+    @info "Sending INIT"
+    write(comm, one(Int32))
+    str = "ok"
+    write(comm, sizeof(str))
+    write(comm, str)
+    return true
+end
+
 
 function recvposdata(comm)
     raw_cell = read(comm, 9*8)
@@ -66,27 +77,70 @@ function recvposdata(comm)
     )
 end
 
+function send_pos_data(comm, sys)
+    @info "Sending position data"
+    box = vcat(bounding_box(sys)...)
+    box = ustrip.(u"bohr", box)
+    write(comm, box)
+    write(comm, zeros(3,3) )  #inverse cell that is to be dropped
+    l = length(sys)
+    write(comm, Int32(l) )
+    pos = map( 1:l ) do i 
+        ustrip.(u"bohr", position(sys, i))
+    end
+    write(comm, pos)
+    @info "Position data sent"
+    return true
+end
+
 
 function sendforce(comm, e::Number, forces::AbstractVector, virial::AbstractMatrix)
     etype = (eltype ∘ eltype)(forces)
     f_tmp = reinterpret(reshape, etype, forces)
     sendmsg(comm, "FORCEREADY")
-    write(comm, ustrip(u"hartree", e) )
+    write(comm, (Float64 ∘ ustrip)(u"hartree", e) )
     write(comm, Int32( length(forces) ) )
-    write(comm, ustrip.(u"hartree/bohr", f_tmp) )
-    write(comm, ustrip.(u"hartree", virial) )
+    write(comm, (Float64 ∘ ustrip).(u"hartree/bohr", f_tmp) )
+    write(comm, (Float64 ∘ ustrip).(u"hartree", virial) )
 
     # Send single byte at end to make sure we are alive
     write(comm, one(Int32) )
     write(comm, zero(UInt8) )
 end
 
+
+function recv_force(comm)
+    sendmsg(comm, "GETFORCE")
+    mess = recvmsg(comm)
+    if mess == "FORCEREADY"
+        @info "Recieving forces"
+        e = read(comm, Float64)
+        n = read(comm, Int32)
+        f_raw = read(comm, sizeof(Float64)*3*n)
+        v_raw = read(comm, sizeof(Float64)*9)
+
+        # Reading end message that is dropped
+        i = read(comm, Int32)
+        _ = read(comm, i)
+
+        f = reinterpret(force_el_type, f_raw)
+        v = reinterpret(virial_type, v_raw)[1]
+        return (
+            energy = e * u"hartree",
+            forces = f,
+            virial = v
+        )
+    else
+        error("Expected \"FORCEREADY\", but received \"$mess\"")
+    end
+end
+
 """
-    run_driver(address, calculator, init_structure; port=31415, unixsocket=false )
+    run_driver(address, calculator, init_structure; port=31415, unixsocket=false, basename="/tmp/ipi_" )
 
 Connect I-PI driver to server at given `address`. Use kword `port` (default 31415) to
-specify port. If kword `unixsocket` is true, `address` is understood to be the name of the socket
-and `port` option is ignored.
+specify port. If kword `unixsocket` is true, `basename*address` is understood to be the name of the socket
+and `port` option is ignored. 
 
 You need to give initial structure as I-PI protocol does not transfer atom symbols.
 This means that, if you want to change the number of atoms or their symbols, you need
@@ -95,9 +149,9 @@ to lauch a new driver.
 Calculator events are logged at info level by default. If you do not want them to be logged,
 change logging status for IPI module.
 """
-function run_driver(address, calc, init_structure; port=31415, unixsocket=false )
+function run_driver(address, calc, init_structure; port=31415, unixsocket=false, basename="/tmp/ipi_" )
     if unixsocket
-        comm = connect("/tmp/ipi_"*address)
+        comm = connect(basename*address)
     else
         comm = connect(address, port)
     end
@@ -148,5 +202,69 @@ function run_driver(address, calc, init_structure; port=31415, unixsocket=false 
             error("Message not recognised")
         end
         
+    end
+end
+
+
+
+## Server specific part
+
+
+mutable struct IPIcalculator{TS, TC}
+    server::TS
+    sock::TC
+    function IPIcalculator(address=ip"127.0.0.1"; port=31415, unixpipe=false, basename="/tmp/ipi_" )
+        server, sock = start_ipi_server(address; port=port, unixpipe=unixpipe, basename=basename)
+        new(server, sock)
+    end
+end
+
+function start_ipi_server(address; port=31415, unixpipe=false, basename="/tmp/ipi_", tries=5 )
+    @info "Starting i-PI server"
+    server = nothing
+    if unixpipe
+        server = listen(basename*addres)
+    else
+        server = listen(address, port)
+    end
+    get_connection(server; tries=tries) # returns server, socket
+end
+
+function get_connection(server; tries=5)
+    sock = accept(server)
+    i = 1
+    while isopen(sock) || i < tries
+        sendmsg(sock, "STATUS")
+        mess = recvmsg(sock)
+        if mess == "NEEDINIT"
+            sendmsg(sock, "INIT")
+            send_init(sock)
+            continue
+        elseif mess == "READY"
+            return server, sock
+        else
+            i += 1
+            close(sock)
+            sock = accept(server)
+        end
+    end
+    error("Could not form a connection to a working i-PI driver")
+end
+
+
+function AtomsCalculators.energy_forces_virial(sys, ipi::IPIcalculator; kwargs...)
+    if ! isopen(ipi.sock)
+        @info "reconnecting to i-PI driver"
+        _, sock = get_connection(ipi.server)
+        ipi.sock = sock
+    end
+    sendmsg(ipi.sock, "POSDATA")
+    send_pos_data(ipi.sock, sys)
+    sendmsg(ipi.sock, "STATUS")
+    mess = recvmsg(sock)
+    if mess == "HAVEDATA"
+        return recv_force(ipi.sock)
+    else
+        error("Expected \"HAVEDATA\", but received \"$mess\"")
     end
 end
