@@ -61,7 +61,7 @@ function recvposdata(comm)
     data_pos = reinterpret(pos_type, raw_pos)
     @info "Position data recieved"
     return (;
-        :cell => Vector(data_cell),
+        :cell => Tuple(Vector(data_cell)),
         :positions => Vector(data_pos)  # clean type a little bit
     )
 end
@@ -105,12 +105,11 @@ function run_driver(address, calc, init_structure; port=31415, unixsocket=false 
     has_data = false
     data = nothing
 
-    masses = atomic_mass(init_structure)
-    symbols = atomic_symbol(init_structure)
-    anumbers = atomic_number(init_structure)
-    positions = position(init_structure)
-    cell = bounding_box(init_structure)
-    pbc =  boundary_conditions(init_structure)
+    pbc = periodicity(init_structure)
+    masses = mass(init_structure, :)
+    atom_species = species(init_structure, :)
+    positions = position(init_structure, :)
+    box = bounding_box(init_structure)
 
 
     while true
@@ -132,9 +131,9 @@ function run_driver(address, calc, init_structure; port=31415, unixsocket=false 
         elseif header == "POSDATA"
             pos = recvposdata(comm)
             positions = pos[:positions]
-            cell = pos[:cell]
-            @assert length(symbols) == length(positions) "received amount of position data does no match the atomic symbol data"
-            system = FastSystem(cell, pbc, positions, symbols, anumbers, masses)
+            box = pos[:cell]
+            @assert length(atom_species) == length(positions) "received amount of position data does no match the atomic symbol data"
+            system = FastSystem(box, pbc, positions, atom_species, masses)
             data = AtomsCalculators.energy_forces_virial(system, calc)
             has_data = true
         elseif header == "GETFORCE"
