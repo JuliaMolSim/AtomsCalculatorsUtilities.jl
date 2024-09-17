@@ -11,9 +11,15 @@ using UnitfulAtomic
 export run_driver
 
 const hdrlen = 12
-const pos_type      = typeof( zero( SVector{3, Float64} ) * u"bohr" ) 
-const force_el_type = typeof( zero( SVector{3, Float64} ) * u"hartree/bohr" )
-const virial_type   = typeof( zero( SMatrix{3, 3, Float64} ) * u"hartree" )
+
+# Define context untits for better conversions
+const bohr = Unitful.ContextUnits(u"bohr", u"Å")
+const hartree = Unitful.ContextUnits(u"hartree", u"eV")
+
+
+const pos_type      = typeof( zero( SVector{3, Float64} ) * bohr ) 
+const force_el_type = typeof( zero( SVector{3, Float64} ) * (hartree/bohr) )
+const virial_type   = typeof( zero( SMatrix{3, 3, Float64} ) * hartree )
 
 function sendmsg(comm, message; nbytes=hdrlen)
     @info "Sending message" message
@@ -64,10 +70,10 @@ end
 
 
 function recvposdata(comm)
-    raw_cell = read(comm, 9*8)
-    raw_icell = read(comm, 9*8) # drop this (inverce cell)
+    raw_cell = read(comm, 9*sizeof(Float64))
+    raw_icell = read(comm, 9*sizeof(Float64)) # drop this (inverce cell)
     natoms = read(comm, Int32)
-    raw_pos = read(comm, 8*3*natoms)
+    raw_pos = read(comm, sizeof(Float64)*3*natoms)
     data_cell = reinterpret(pos_type, raw_cell)
     data_pos = reinterpret(pos_type, raw_pos)
     @info "Position data recieved"
@@ -79,14 +85,14 @@ end
 
 function send_pos_data(comm, sys)
     @info "Sending position data"
-    box = vcat(bounding_box(sys)...)
-    box = ustrip.(u"bohr", box)
+    box_tmp = vcat(bounding_box(sys)...)
+    box = (Float64 ∘ ustrip).(u"bohr", box_tmp)
     write(comm, box)
     write(comm, zeros(3,3) )  #inverse cell that is to be dropped
     l = length(sys)
     write(comm, Int32(l) )
     pos = map( 1:l ) do i 
-        ustrip.(u"bohr", position(sys, i))
+        SVector{3, Float64}(ustrip.(u"bohr", position(sys, i)))
     end
     write(comm, pos)
     @info "Position data sent"
@@ -126,7 +132,7 @@ function recv_force(comm)
         f = reinterpret(force_el_type, f_raw)
         v = reinterpret(virial_type, v_raw)[1]
         return (
-            energy = e * u"hartree",
+            energy = e * hartree,
             forces = f,
             virial = v
         )
@@ -268,3 +274,30 @@ function AtomsCalculators.energy_forces_virial(sys, ipi::IPIcalculator; kwargs..
         error("Expected \"HAVEDATA\", but received \"$mess\"")
     end
 end
+
+
+AtomsCalculators.@generate_interface function AtomsCalculators.potential_energy(sys, ipi::IPIcalculator; kwargs...)
+    tmp = AtomsCalculators.energy_forces_virial(sys, ipi)
+    tmp.energy
+end
+
+AtomsCalculators.@generate_interface function AtomsCalculators.forces(sys, ipi::IPIcalculator; kwargs...)
+    tmp = AtomsCalculators.energy_forces_virial(sys, ipi)
+    tmp.forces
+end
+
+AtomsCalculators.@generate_interface function AtomsCalculators.virial(sys, ipi::IPIcalculator; kwargs...)
+    tmp = AtomsCalculators.energy_forces_virial(sys, ipi)
+    tmp.virial
+end
+
+function AtomsCalculators.energy_forces(sys, ipi::IPIcalculator; kwargs...)
+    tmp = AtomsCalculators.energy_forces_virial(sys, ipi)
+    return tmp
+end
+
+
+
+AtomsCalculators.energy_unit(::IPIcalculator) = hartree
+AtomsCalculators.length_unit(::IPIcalculatore) = bohr
+AtomsCalculators.promote_force_type(::Any, ::IPIcalculator) = force_el_type
