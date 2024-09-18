@@ -130,7 +130,7 @@ function recv_force(comm)
         i = read(comm, Int32)
         _ = read(comm, i)
 
-        f = reinterpret(force_el_type, f_raw)
+        f = reinterpret(force_el_type, f_raw) |> Vector
         v = reinterpret(virial_type, v_raw)[1]
         return (
             energy = e * hartree,
@@ -230,7 +230,7 @@ function start_ipi_server(address; port=31415, unixpipe=false, basename="/tmp/ip
     @info "Starting i-PI server"
     server = nothing
     if unixpipe
-        server = listen(basename*addres)
+        server = listen(basename*address)
     else
         server = listen(address, port)
     end
@@ -279,17 +279,17 @@ end
 
 AtomsCalculators.@generate_interface function AtomsCalculators.potential_energy(sys, ipi::IPIcalculator; kwargs...)
     tmp = AtomsCalculators.energy_forces_virial(sys, ipi)
-    tmp.energy
+    return tmp.energy
 end
 
 AtomsCalculators.@generate_interface function AtomsCalculators.forces(sys, ipi::IPIcalculator; kwargs...)
     tmp = AtomsCalculators.energy_forces_virial(sys, ipi)
-    tmp.forces
+    return tmp.forces
 end
 
 AtomsCalculators.@generate_interface function AtomsCalculators.virial(sys, ipi::IPIcalculator; kwargs...)
     tmp = AtomsCalculators.energy_forces_virial(sys, ipi)
-    tmp.virial
+    return tmp.virial
 end
 
 function AtomsCalculators.energy_forces(sys, ipi::IPIcalculator; kwargs...)
@@ -301,4 +301,3 @@ end
 
 AtomsCalculators.energy_unit(::IPIcalculator) = hartree
 AtomsCalculators.length_unit(::IPIcalculator) = bohr
-AtomsCalculators.promote_force_type(::Any, ::IPIcalculator) = force_el_type
