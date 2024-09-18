@@ -9,6 +9,7 @@ using Unitful
 using UnitfulAtomic
 
 export run_driver
+export IPIcalculator
 
 const hdrlen = 12
 
@@ -221,7 +222,7 @@ mutable struct IPIcalculator{TS, TC}
     sock::TC
     function IPIcalculator(address=ip"127.0.0.1"; port=31415, unixpipe=false, basename="/tmp/ipi_" )
         server, sock = start_ipi_server(address; port=port, unixpipe=unixpipe, basename=basename)
-        new(server, sock)
+        new{typeof(server), typeof(sock)}(server, sock)
     end
 end
 
@@ -267,7 +268,7 @@ function AtomsCalculators.energy_forces_virial(sys, ipi::IPIcalculator; kwargs..
     sendmsg(ipi.sock, "POSDATA")
     send_pos_data(ipi.sock, sys)
     sendmsg(ipi.sock, "STATUS")
-    mess = recvmsg(sock)
+    mess = recvmsg(ipi.sock)
     if mess == "HAVEDATA"
         return recv_force(ipi.sock)
     else
@@ -299,5 +300,5 @@ end
 
 
 AtomsCalculators.energy_unit(::IPIcalculator) = hartree
-AtomsCalculators.length_unit(::IPIcalculatore) = bohr
+AtomsCalculators.length_unit(::IPIcalculator) = bohr
 AtomsCalculators.promote_force_type(::Any, ::IPIcalculator) = force_el_type
