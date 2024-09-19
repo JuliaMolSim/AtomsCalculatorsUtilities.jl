@@ -220,16 +220,16 @@ end
 mutable struct IPIcalculator{TS, TC}
     server::TS
     sock::TC
-    function IPIcalculator(address=ip"127.0.0.1"; port=31415, unixpipe=false, basename="/tmp/ipi_" )
-        server, sock = start_ipi_server(address; port=port, unixpipe=unixpipe, basename=basename)
+    function IPIcalculator(address=ip"127.0.0.1"; port=31415, unixsocket=false, basename="/tmp/ipi_" )
+        server, sock = start_ipi_server(address; port=port, unixpipe=unixsocket, basename=basename)
         new{typeof(server), typeof(sock)}(server, sock)
     end
 end
 
-function start_ipi_server(address; port=31415, unixpipe=false, basename="/tmp/ipi_", tries=5 )
+function start_ipi_server(address; port=31415, unixsocket=false, basename="/tmp/ipi_", tries=5 )
     @info "Starting i-PI server"
     server = nothing
-    if unixpipe
+    if unixsocket
         server = listen(basename*address)
     else
         server = listen(address, port)
