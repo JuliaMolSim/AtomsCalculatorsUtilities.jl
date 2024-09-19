@@ -33,10 +33,10 @@ V = SimplePairPotential(
 )
 
 
-ipi_future = @spawn IPIcalculator()
+ipi_future = @spawn IPIcalculator(port=33415)
 sleep(1) # we need to yeald to start the server
 
-ipi_driver = @spawn run_driver("127.0.0.1", V, hydrogen)
+ipi_driver = @spawn run_driver("127.0.0.1", V, hydrogen; port=33415)
 sleep(1) # we need to yeald to connect to the server
 
 calc = fetch(ipi_future)
