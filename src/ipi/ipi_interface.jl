@@ -237,7 +237,7 @@ mutable struct IPIcalculator{TS, TC}
     server::TS
     sock::TC
     function IPIcalculator(address=ip"127.0.0.1"; port=31415, unixsocket=false, basename="/tmp/ipi_" )
-        server, sock = start_ipi_server(address; port=port, unixpipe=unixsocket, basename=basename)
+        server, sock = start_ipi_server(address; port=port, unixsocket=unixsocket, basename=basename)
         new{typeof(server), typeof(sock)}(server, sock)
     end
 end
