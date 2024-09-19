@@ -216,7 +216,23 @@ end
 
 ## Server specific part
 
+"""
+    IPIcalculator(address=ip"127.0.0.1"; port=31415, unixsocket=false, basename="/tmp/ipi_" )
 
+Creates i-PI https://ipi-code.org/ server that works as an AtomsCalculators compatible calculators
+once i-PI driver has been connected.
+
+By default the calculator will log protocol calls to the client. If you want to suppress these,
+you need to change the logging level of IPI module.
+
+# Args
+- `address=ip"127.0.0.1"`   -  server address, if `unixsocket=true` is considered as unixsocket address
+
+# Kwargs
+- `basename="/tmp/ipi_"`    -  prefixed to address if `unixsocket=true`
+- `port=31415`              -  network port the server is using
+- `unixsocket=false`        -  use unixsocket for the connection
+"""
 mutable struct IPIcalculator{TS, TC}
     server::TS
     sock::TC
