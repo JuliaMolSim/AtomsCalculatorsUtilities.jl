@@ -63,12 +63,12 @@ function energy_forces_virial(
                   kwargs...)
    uE = energy_unit(V)
    fE = force_unit(V)
-   E_F_V = Folds.sum( collect(chunks(domain, ntasks)), 
+   E_F_V = Folds.sum( collect(index_chunks(domain; n=ntasks)), 
                       executor;
                       init=[ zero_energy(sys, V), 
                              zero_forces(sys, V), 
                              zero_virial(sys, V) ]
-   ) do (sub_domain, _)
+   ) do sub_domain
 
       E = zero_energy(sys, V)
       frc = zero_forces(sys, V)
