@@ -79,7 +79,6 @@ function hessian(sys, V::SitePotential;
    for i in domain 
       Js, Rs, Zs, z0 = get_neighbours(sys, V, nlist, i) 
       Hi = hessian_site(V, Rs, Zs, z0)
-      release!(Js); release!(Rs); release!(Zs)
 
       Nr = length(Js)
       Ji = (i - 1) * D .+ (1:D)
@@ -131,7 +130,6 @@ function block_hessian(sys, V::SitePotential;
    for i in domain 
       Js, Rs, Zs, z0 = get_neighbours(sys, V, nlist, i) 
       Hi = block_hessian_site(V, Rs, Zs, z0)
-      release!(Js); release!(Rs); release!(Zs)
 
       # Hi[j1, j2] = ∂²V/∂𝐫_ij1 ∂𝐫_ij2
       # where 𝐫_ij1 = 𝐫_j1 - 𝐫_i
