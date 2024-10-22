@@ -37,7 +37,7 @@ Julia driver can be started with
 ```julia
 using AtomsCalculatorsUtilities.IPI
 
-sys = # generate system 
+sys = # generate system that sets up atom types for the calculator
 calc = # generate a AtomsCalculators calculator
 
 # network mode on localhost 
@@ -46,6 +46,9 @@ run_driver(ip"127.0.0.1", calc, sys; port=33415)
 # unixsocket mode with socket at /tmp/ipi_mysocket
 run_driver("mysocket", calc, sys; unixsocket=true,  basename="/tmp/ipi_")
 ```
+
+Note, that you need to give driver AtomsBase structure that defines atom types.
+If you want to change either number or types of atoms, you need to create new driver.
 
 i-PI protocol requires values for energy, forces and virial.
 If you don't need virial or if your calculator does not support virial calculation,
