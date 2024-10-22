@@ -9,7 +9,7 @@ makedocs(;
     sitename="AtomsCalculatorsUtilities.jl",
     checkdocs=:exports,
     format=Documenter.HTML(;
-        canonical="https://tjjarvinen.github.io/AtomsCalculatorsUtilities.jl",
+        canonical="https://JuliaMolSim.github.io/AtomsCalculatorsUtilities.jl",
         edit_link="main",
         assets=String[],
     ),

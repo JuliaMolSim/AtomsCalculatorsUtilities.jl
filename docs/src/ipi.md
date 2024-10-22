@@ -9,7 +9,7 @@ AtomsCalculators compatable caluculators.
 ## i-PI basic consepts
 
 The interface is based on server and calculator, called driver, interaction.
-Server is setup by either network mode or a unixpipe mode.
+Server is setup by either network mode or unixpipe mode.
 
 Following starts [ASE](https://wiki.fysik.dtu.dk/ase/index.html) SocketIOCalculator that is a i-PI server implementation, using default port 31415
 

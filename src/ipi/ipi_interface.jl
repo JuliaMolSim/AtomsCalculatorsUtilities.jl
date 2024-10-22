@@ -225,6 +225,8 @@ once i-PI driver has been connected.
 By default the calculator will log protocol calls to the client. If you want to suppress these,
 you need to change the logging level of IPI module.
 
+At the end of calculation you should call `close` on the calculator to send exit signal to the driver.
+
 # Args
 - `address=ip"127.0.0.1"`   -  server address, if `unixsocket=true` is considered as unixsocket address
 
@@ -272,6 +274,12 @@ function get_connection(server; tries=5)
         end
     end
     error("Could not form a connection to a working i-PI driver")
+end
+
+function Base.close(ipi::IPIcalculator)
+    if isopen(ipi.sock)
+        sendmsg(ipi.sock, "EXIT")
+    end
 end
 
 
