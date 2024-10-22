@@ -50,3 +50,5 @@ f_v   = AtomsCalculators.forces(hydrogen, V)
 f_ipi = AtomsCalculators.forces(hydrogen, calc)
 @test all( isapprox.(f_v, f_ipi) )
 @test AtomsCalculators.virial(hydrogen, V) ≈ AtomsCalculators.virial(hydrogen, calc)
+
+close(calc)
