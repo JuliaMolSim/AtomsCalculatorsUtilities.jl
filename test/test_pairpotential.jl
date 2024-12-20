@@ -24,7 +24,7 @@ box = (
 
 pbc = (false, false, false)
 
-hydrogen = FlexibleSystem(hydrogen[:], bounding_box=box, periodicity=pbc)
+hydrogen = FlexibleSystem(hydrogen[:], cell_vectors=box, periodicity=pbc)
 
 
 V = SimplePairPotential(
