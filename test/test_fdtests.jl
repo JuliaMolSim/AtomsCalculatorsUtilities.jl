@@ -62,19 +62,19 @@ module DemoPairCalc
    end
 
    potential_energy(sys, calc::AbstractPot; kwargs...) = 
-        _energy(_ustripvecvec(position(sys))) * uE 
+        _energy(_ustripvecvec(position(sys, :))) * uE 
 
    forces(sys, calc::AbstractPot; kwargs...) = 
-         _forces(_ustripvecvec(position(sys))) * uE / uL
+         _forces(_ustripvecvec(position(sys, :))) * uE / uL
 
    virial(sys, calc::AbstractPot; kwargs...) = 
-         _virial(_ustripvecvec(position(sys))) * uE
+         _virial(_ustripvecvec(position(sys, :))) * uE
 
    forces(sys, calc::PotFerr; kwargs...) = 
-         0.9 * _forces(_ustripvecvec(position(sys))) * uE / uL
+         0.9 * _forces(_ustripvecvec(position(sys, :))) * uE / uL
 
    virial(sys, calc::PotVerr; kwargs...) = 
-         0.9 * _virial(_ustripvecvec(position(sys))) * uE
+         0.9 * _virial(_ustripvecvec(position(sys, :))) * uE
 
 
    function random_system(Nat, pbc=:periodic)

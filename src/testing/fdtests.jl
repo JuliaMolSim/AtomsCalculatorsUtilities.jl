@@ -99,7 +99,7 @@ end
 
 
 function _fdtest_forces(sys::AbstractSystem, calc, verbose, rattle, h0; kwargs...) 
-   X0, bb0 = _rattle(position(sys, :), bounding_box(sys), rattle)
+   X0, bb0 = _rattle(position(sys, :), cell_vectors(sys), rattle)
 
    uE = energy_unit(calc)
    uL = length_unit(calc)
@@ -131,7 +131,7 @@ end
 
 
 function _fdtest_virial(sys::AbstractSystem, calc, verbose, rattle, h0; kwargs...)
-   X0, C0 = _rattle(position(sys, :), bounding_box(sys), rattle)
+   X0, C0 = _rattle(position(sys, :), cell_vectors(sys), rattle)
 
    # reference deformation is just the identity. Note, this is NOT a 
    # matrix of cell vectors, but a deformation of cell vectors, i.e. unitless!
