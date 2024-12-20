@@ -86,7 +86,7 @@ end
 
 function send_pos_data(comm, sys)
     @info "Sending position data"
-    box_tmp = vcat(bounding_box(sys)...)
+    box_tmp = reduce(vcat, cell_vectors(sys))
     box = (Float64 ∘ ustrip).(u"bohr", box_tmp)
     write(comm, box)
     write(comm, zeros(3,3) )  #inverse cell that is to be dropped
@@ -170,7 +170,7 @@ function run_driver(address, calc, init_structure; port=31415, unixsocket=false,
     masses = mass(init_structure, :)
     atom_species = species(init_structure, :)
     positions = position(init_structure, :)
-    box = bounding_box(init_structure)
+    box = cell_vectors(init_structure)
 
 
     while true
