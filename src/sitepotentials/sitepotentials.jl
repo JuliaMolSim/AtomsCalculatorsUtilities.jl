@@ -9,7 +9,6 @@ using Folds
 using NeighbourLists
 using Unitful
 using Bumper
-using StrideArrays 
 
 using StaticArrays: SVector, SMatrix 
 
