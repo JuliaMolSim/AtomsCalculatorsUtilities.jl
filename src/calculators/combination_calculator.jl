@@ -18,7 +18,7 @@ This will allow you to extend based on calculator type.
 ```julia
 function AtomsCalculatorsUtilities.generate_keywords(sys, pp1::PairPotential, pp2::PairPotential; kwargs...)
     if cutoff_radius(pp1) ≈ cutoff_radius(pp2)
-        nlist = PairList(sys, cutoff_radius(pp1))
+        nlist = PairList(sys, cutoff_radius(pp1), int_type = Int)
         return (; :nlist => nlist, kwargs...)
     else
         return kwargs
@@ -27,7 +27,7 @@ end
 ```
 
 will check that PairPotentials have same cutoff radius.
-Then calculates pairlist and passes it forward as a keyword. 
+Then calculates pairlist and passes it forward as a keyword.
 """
 generate_keywords(sys, calculators...; kwargs...) = kwargs
 
@@ -66,18 +66,18 @@ mutable struct CombinationCalculator{N,T,TE,TL} # Mutable struct so that calcula
     energy_unit::TE
     length_unit::TL
     function CombinationCalculator(
-        calculators...; 
-        executor=SequentialEx(), 
+        calculators...;
+        executor=SequentialEx(),
         keyword_generator=nothing,
         energy_unit=AtomsCalculators.energy_unit(calculators[1]),
         length_unit=AtomsCalculators.length_unit(calculators[1])
     )
         kgen = something(keyword_generator, generate_keywords)
         new{length(calculators), typeof(kgen), typeof(energy_unit), typeof(length_unit)}(
-            calculators, 
-            executor, 
-            kgen, 
-            energy_unit, 
+            calculators,
+            executor,
+            kgen,
+            energy_unit,
             length_unit
         )
     end
@@ -99,11 +99,11 @@ AtomsCalculators.energy_unit(cc::CombinationCalculator) = cc.energy_unit
 AtomsCalculators.length_unit(cc::CombinationCalculator) = cc.length_unit
 
 AtomsCalculators.@generate_interface function AtomsCalculators.calculate(
-    et::AtomsCalculators.Energy, 
-    sys, 
-    calc::CombinationCalculator, 
-    pr=nothing, 
-    st=nothing; 
+    et::AtomsCalculators.Energy,
+    sys,
+    calc::CombinationCalculator,
+    pr=nothing,
+    st=nothing;
     kwargs...
 )
     new_kwargs = calc.keywords(sys, calc.calculators...; kwargs...)
@@ -142,13 +142,13 @@ end
 
 
 function AtomsCalculators.calculate(
-    ft::AtomsCalculators.Forces, 
-    sys, 
-    calc::CombinationCalculator, 
-    pr=nothing, 
-    st=nothing; 
+    ft::AtomsCalculators.Forces,
+    sys,
+    calc::CombinationCalculator,
+    pr=nothing,
+    st=nothing;
     kwargs...
-)   
+)
     new_kwargs = calc.keywords(sys, calc.calculators...; kwargs...)
 
     # Check and prepare parameters and state
@@ -162,7 +162,7 @@ function AtomsCalculators.calculate(
     else
         tst = Tuple( st[i] for i in 1:length(calc)  ) # This checks for correct length too
     end
-    
+
     tmp =  Folds.map( zip(calc.calculators, tpr, tst), calc.executor ) do (c, p, s)
         AtomsCalculators.calculate(ft, sys, c, p, s; new_kwargs...)
     end
@@ -189,10 +189,10 @@ end
 
 AtomsCalculators.@generate_interface function AtomsCalculators.calculate(
     vt::AtomsCalculators.Virial,
-    sys, 
+    sys,
     calc::CombinationCalculator,
     pr::Union{Nothing,Tuple}=nothing,
-    st::Union{Nothing,Tuple}=nothing,; 
+    st::Union{Nothing,Tuple}=nothing,;
     kwargs...
 )
     new_kwargs = calc.keywords(sys, calc.calculators...; kwargs...)
@@ -212,7 +212,7 @@ AtomsCalculators.@generate_interface function AtomsCalculators.calculate(
     tmp =  Folds.map( zip(calc.calculators, tpr, tst), calc.executor ) do (c, p, s)
         AtomsCalculators.calculate(vt, sys, c, p, s; new_kwargs...)
     end
-    
+
     # Gather output
     vir_tot = sum( tmp ) do x
         x.virial
@@ -269,7 +269,7 @@ function AtomsCalculators.set_state!(ccalc::CombinationCalculator, states)
     end
     return CombinationCalculator(
         tmp...;
-        executor=ccalc.executor, 
+        executor=ccalc.executor,
         keyword_generator=ccalc.keywords,
         energy_unit=ccalc.energy_unit,
         length_unit=ccalc.length_unit
@@ -283,7 +283,7 @@ function AtomsCalculators.set_parameters!(ccalc::CombinationCalculator, paramete
     end
     return CombinationCalculator(
         tmp...;
-        executor=ccalc.executor, 
+        executor=ccalc.executor,
         keyword_generator=ccalc.keywords,
         energy_unit=ccalc.energy_unit,
         length_unit=ccalc.length_unit
