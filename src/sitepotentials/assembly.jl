@@ -1,32 +1,32 @@
 
 
 # ---------------------------------------------------
-# utilities 
+# utilities
 
-function site_virial(dV, Rs) 
+function site_virial(dV, Rs)
    TV = promote_type(eltype(eltype(dV)), eltype(eltype(Rs)))
-   return - sum( dv_i * 𝐫_i' for (dv_i, 𝐫_i) in zip(dV, Rs); 
+   return - sum( dv_i * 𝐫_i' for (dv_i, 𝐫_i) in zip(dV, Rs);
                  init = zero(SMatrix{3, 3, TV}) )
 end
 
 
 
 # ---------------------------------------------------
-# main assembly codes 
+# main assembly codes
 
 AtomsCalculators.@generate_interface function AtomsCalculators.potential_energy(
-                  sys, 
-                  V::SitePotential; 
-                  domain = 1:length(sys), 
-                  executor = ThreadedEx(), 
-                  nlist = PairList(sys, cutoff_radius(V)), 
+                  sys,
+                  V::SitePotential;
+                  domain = 1:length(sys),
+                  executor = ThreadedEx(),
+                  nlist = PairList(sys, cutoff_radius(V), int_type = Int),
                   kwargs...)
    uE = energy_unit(V)
-   E = Folds.sum( domain, executor; 
-                  init = zero_energy(sys, V) 
+   E = Folds.sum( domain, executor;
+                  init = zero_energy(sys, V)
    ) do i
-      Js, Rs, Zs, z0 = get_neighbours(sys, V, nlist, i) 
-      e_i = eval_site(V, Rs, Zs, z0) * uE 
+      Js, Rs, Zs, z0 = get_neighbours(sys, V, nlist, i)
+      e_i = eval_site(V, Rs, Zs, z0) * uE
    end
 
    return E
@@ -34,16 +34,16 @@ end
 
 
 AtomsCalculators.@generate_interface function AtomsCalculators.virial(
-                  sys, 
-                  V::SitePotential; 
-                  domain   = 1:length(sys), 
+                  sys,
+                  V::SitePotential;
+                  domain   = 1:length(sys),
                   executor = ThreadedEx(),
-                  nlist    = PairList(sys, cutoff_radius(V)),
+                  nlist    = PairList(sys, cutoff_radius(V), int_type = Int),
                   kwargs...)
    uE = energy_unit(V)
-   vir = Folds.sum( domain, executor; 
-                    init = zero_virial(sys, V) 
-   ) do i 
+   vir = Folds.sum( domain, executor;
+                    init = zero_virial(sys, V)
+   ) do i
       Js, Rs, Zs, z0 = get_neighbours(sys, V, nlist, i)
       Ei, ∇Ei = eval_grad_site(V, Rs, Zs, z0)
       vir_i = site_virial(∇Ei, Rs) * uE
@@ -54,19 +54,19 @@ end
 
 
 function energy_forces_virial(
-                  sys, 
-                  V::SitePotential; 
-                  domain   = 1:length(sys), 
+                  sys,
+                  V::SitePotential;
+                  domain   = 1:length(sys),
                   executor = ThreadedEx(),
                   ntasks   = Threads.nthreads(),
-                  nlist    = PairList(sys, cutoff_radius(V)),
+                  nlist    = PairList(sys, cutoff_radius(V), int_type = Int),
                   kwargs...)
    uE = energy_unit(V)
    fE = force_unit(V)
-   E_F_V = Folds.sum( collect(index_chunks(domain; n=ntasks)), 
+   E_F_V = Folds.sum( collect(index_chunks(domain; n=ntasks)),
                       executor;
-                      init=[ zero_energy(sys, V), 
-                             zero_forces(sys, V), 
+                      init=[ zero_energy(sys, V),
+                             zero_forces(sys, V),
                              zero_virial(sys, V) ]
    ) do sub_domain
 
@@ -85,9 +85,9 @@ function energy_forces_virial(
           end
           frc[i] += sum(∇Ei) * force_unit(V)
       end
-      [E, frc, vir] 
+      [E, frc, vir]
    end
-   
+
    return (energy = E_F_V[1], forces = E_F_V[2], virial = E_F_V[3],)
 end
 
@@ -97,6 +97,6 @@ function AtomsCalculators.energy_forces(at, V::SitePotential; kwargs...)
    return (energy = efv.energy, forces = efv.forces)
 end
 
-AtomsCalculators.@generate_interface function AtomsCalculators.forces(at, V::SitePotential; kwargs...) 
+AtomsCalculators.@generate_interface function AtomsCalculators.forces(at, V::SitePotential; kwargs...)
    return AtomsCalculators.energy_forces(at, V; kwargs...)[:forces]
 end
