@@ -20,6 +20,6 @@ makedocs(;
 )
 
 deploydocs(;
-    repo="github.com/tjjarvinen/AtomsCalculatorsUtilities.jl",
+    repo="github.com/JuliaMolSim/AtomsCalculatorsUtilities.jl",
     devbranch="main",
 )
